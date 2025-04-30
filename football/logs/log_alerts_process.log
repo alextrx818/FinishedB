@@ -1,52 +1,23 @@
-2025-04-30 01:41:37 ET - log_alerts - INFO - Log scanner starting at 2025-04-29 21:41:37 ET
-2025-04-30 01:41:37 ET - log_alerts - INFO - Starting continuous log scanning every 60 seconds
-2025-04-30 01:41:37 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:41:37 ET - log_alerts - INFO - Found match meeting 3HT0 criteria: Barbados Premier League (Barbados) - Wotton FC vs Kick Start FC, O/U line: 3.5, Time: 4 min
-2025-04-30 01:41:37 ET - log_alerts - INFO - Successfully sent Telegram alert for 3HT0 (Logger)
-2025-04-30 01:41:37 ET - log_alerts - INFO - Found match meeting 3HT0 criteria: Bolivian Copa LFPB (Bolivia) - Oriente Petrolero vs Independiente Petrolero, O/U line: 3.0, Time: 4 min
-2025-04-30 01:41:38 ET - log_alerts - INFO - Successfully sent Telegram alert for 3HT0 (Logger)
-2025-04-30 01:42:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:43:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:44:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:45:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:46:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:47:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:48:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:49:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:50:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:51:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:52:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:53:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:54:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:55:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:56:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:57:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:58:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 01:59:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:00:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:01:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:02:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:03:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:04:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:05:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:06:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:07:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:08:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:09:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:10:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:11:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:12:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:13:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:14:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:15:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:16:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:17:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:18:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:19:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:20:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:21:38 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:22:39 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:23:39 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:24:39 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:25:39 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
-2025-04-30 02:26:39 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-29.log
+2025-04-30 14:52:49 ET - log_alerts - INFO - Log scanner starting at 2025-04-30 10:52:49 ET
+2025-04-30 14:52:49 ET - log_alerts - INFO - Starting continuous log scanning every 60 seconds
+2025-04-30 14:52:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:53:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:54:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:55:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:56:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:57:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:58:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 14:59:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:00:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:01:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:02:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:03:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:04:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:05:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:06:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:07:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:08:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:09:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:10:49 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:11:50 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log
+2025-04-30 15:12:50 ET - log_alerts - INFO - Scanning log file: /root/CascadeProjects/sports bot/football/logs/football_fetches_2025-04-30.log

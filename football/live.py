@@ -5,6 +5,8 @@ from functools import lru_cache
 import sys
 import traceback
 import argparse
+import datetime
+import pytz
 
 # Create a single session for all API calls
 session = requests.Session()
@@ -787,6 +789,34 @@ def get_status_description(status_id):
     
     return status_mapping.get(code, f"Unknown (ID: {code})")
 
+def get_eastern_time():
+    """Get current time in US Eastern timezone (handles DST automatically)"""
+    utc_now = datetime.datetime.now(pytz.utc)
+    eastern = pytz.timezone('America/New_York')
+    return utc_now.astimezone(eastern)
+
+def send_telegram_alert(message, token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
+    """Send an alert message via Telegram"""
+    telegram_url = f"https://api.telegram.org/bot{token}/sendMessage"
+    timestamp = get_eastern_time().strftime("%Y-%m-%d %H:%M:%S ET")
+    formatted_message = f"{message}\n\nTimestamp: {timestamp}"
+    
+    try:
+        response = requests.post(
+            telegram_url,
+            json={
+                "chat_id": chat_id,
+                "text": formatted_message,
+                "parse_mode": "HTML"
+            }
+        )
+        if response.status_code == 200:
+            print(f"Successfully sent Telegram alert: {message}")
+        else:
+            print(f"Failed to send Telegram alert: {response.text}")
+    except Exception as e:
+        print(f"Error sending Telegram alert: {e}")
+
 def main():
     """
     Main function to fetch live matches and print match details with team names and competition country using parallelization
@@ -839,6 +869,9 @@ def process_live_matches(country_map):
     live_matches_data = fetch_live_matches()
     if not live_matches_data or "results" not in live_matches_data:
         print("No live matches found.")
+        # Add telegram alert for no matches found
+        message = "⚠️ <b>ALERT: NO LIVE MATCHES FOUND</b>\n\nThe API returned no live matches, which is unusual and may indicate a problem with the API or the system. Please check the connection and API status."
+        send_telegram_alert(message)
         return
     
     # Extract match IDs
@@ -945,6 +978,7 @@ def process_live_matches(country_map):
             
             # Print match summary
             print("\n----- MATCH SUMMARY -----")
+            print(f"Timestamp: {get_eastern_time().strftime('%Y-%m-%d %H:%M:%S ET')}")
             print(f"Competition ID: {competition_id}")
             print(f"Competition: {competition_name} ({competition_country})")
             print(f"Match: {home_team_name} vs {away_team_name}")
