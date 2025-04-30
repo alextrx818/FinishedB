@@ -8,4 +8,11 @@ echo "========================================"
 
 # Run the wrapper script which will send Telegram notifications and then run live.py
 cd "/root/CascadeProjects/sports bot"
-python3 football/live_monitor_wrapper.py 6128359776 30 | tee football/live_output.log
+
+# Use the terminal display wrapper instead of running directly
+# Pass --background flag when being called from start_24_7_monitoring.sh
+if [[ "$1" == "--background" ]]; then
+  bash football/terminal_display_wrapper.sh --background
+else
+  bash football/terminal_display_wrapper.sh
+fi

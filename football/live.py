@@ -959,8 +959,10 @@ def process_live_matches(country_map):
             wind_mph = ""
             if wind:
                 try:
-                    wind_mps = float(wind)
-                    wind_mph = f"{wind_mps * 2.237:.1f} mph"
+                    # Extract numeric part from the wind string (remove "m/s" if present)
+                    wind_value = wind.replace("m/s", "").strip()
+                    wind_ms = float(wind_value)
+                    wind_mph = f"{wind} ({wind_ms * 2.237:.1f} mph)"
                 except (ValueError, TypeError):
                     wind_mph = wind
             
@@ -1040,10 +1042,10 @@ def process_live_matches(country_map):
                     print(f"Weather: {weather_text}")
                 if temperature_fahrenheit:
                     print(f"Temperature: {temperature_fahrenheit}")
-                if wind_mph:
-                    print(f"Wind: {wind_mph}")
                 if humidity_text:
                     print(f"Humidity: {humidity_text}")
+                if wind_mph:
+                    print(f"Wind: {wind_mph}")
             else:
                 print("\n--- MATCH ENVIRONMENT ---")
                 print("No environment data available for this match")
