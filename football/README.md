@@ -12,6 +12,16 @@ The project is organized as follows:
 
 ```
 football/
+├── live.py                     # Core data processing engine (never modify this file)
+│
+├── logs/                       # Log directory
+│   ├── alerts/                 # Specialized log alerts
+│   │   └── 3Start.py           # System for tracking matches with O/U line ≥ 3.0
+│
+├── telegram/                   # Telegram notification components
+│   ├── __init__.py             # Module initialization
+│   └── notifier.py             # Centralized notification system
+│
 ├── Start_sh/                   # Startup and monitoring scripts
 │   ├── start_monitor.sh        # Main entry point script
 │   ├── auto_start.sh           # Automatic continuous execution script
@@ -22,15 +32,13 @@ football/
 │   ├── run_with_supervisor.sh  # Script executed by Supervisor
 │   └── football-monitor.conf   # Supervisor configuration
 │
-├── logs/                       # Log directory
-│   ├── Main_Log.log            # Main log of all matches (source of truth)
-│   ├── Reversed_Main_Log.log   # Same log with newest entries first
-│   └── log_alerts/             # Specialized log filters
-│       └── 3start/             # Over/Under 3.0 filter
-│           ├── 3_start.log     # Log of matches with O/U line ≥ 3.0
-│           └── log_filter.py   # Filter script
-│
-└── live.py                     # Core data processing engine
+└── logs/                       # Log directory
+    ├── Main_Log.log            # Main log of all matches (source of truth)
+    ├── Reversed_Main_Log.log   # Same log with newest entries first
+    └── log_alerts/             # Specialized log filters
+        └── 3start/             # Over/Under 3.0 filter
+            ├── 3_start.log     # Log of matches with O/U line ≥ 3.0
+            └── log_filter.py   # Filter script
 ```
 
 ## Getting Started
@@ -47,21 +55,34 @@ football/
    apt-get install -y supervisor
    ```
 
-### Starting the System
+### Starting and Managing the System
 
-The easiest way to start the entire system with continuous execution:
+**IMPORTANT:** When referring to "starting the program", "starting the app", or "starting the project", this means using the systemd service:
 
 ```bash
-./Start_sh/start_monitor.sh --auto
+# Start the sports bot
+sudo systemctl start sportsbot.service
+
+# Check status
+sudo systemctl status sportsbot.service
+
+# Restart the sports bot
+sudo systemctl restart sportsbot.service
+
+# Stop the sports bot
+sudo systemctl stop sportsbot.service
 ```
 
-This single command:
-1. Sets up Supervisor if needed
-2. Configures continuous execution
-3. Starts the football monitoring system
-4. Ensures automatic restart in case of crashes
+The system is configured to:
+- Run continuously with automatic updates every 30 seconds
+- Display timestamps in Eastern Time (ET)
+- Send Telegram notifications on startup, shutdown, or unexpected errors
+- Restart automatically if it crashes
 
-Alternative start methods:
+**Note:** Never modify live.py as it is the foundation of the sports bot system.
+
+### Alternative Start Methods
+
 ```bash
 # Start with continuous mode only (no supervisor)
 ./Start_sh/start_monitor.sh --continuous
