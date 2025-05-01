@@ -10,6 +10,11 @@ import pytz
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+import signal
+import threading
+
+# Record when the script started
+START_TIME = datetime.datetime.now()
 
 # Set up logging configuration
 log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
@@ -875,6 +880,98 @@ def send_telegram_alert(message, token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiI
     except Exception as e:
         print(f"Error sending Telegram alert: {e}")
 
+def get_uptime_status():
+    """Generate uptime status message for the application"""
+    now = datetime.datetime.now()
+    uptime = now - START_TIME
+    
+    # Format uptime as days, hours, minutes, seconds
+    days = uptime.days
+    hours, remainder = divmod(uptime.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    
+    if days > 0:
+        uptime_str = f"{days}d {hours}h {minutes}m {seconds}s"
+    else:
+        uptime_str = f"{hours}h {minutes}m {seconds}s"
+    
+    # Use the get_eastern_time function to get current time in ET
+    eastern_time = get_eastern_time()
+    # Calculate the offset hours from current time
+    uptime_hours = uptime.total_seconds() / 3600
+    # Subtract uptime hours from current ET to get start time in ET
+    start_time_et = eastern_time - datetime.timedelta(hours=uptime_hours)
+    
+    message = f"📊 <b>LIVE.PY STATUS REPORT</b>\n\n"
+    message += f"• <b>Started at:</b> {start_time_et.strftime('%Y-%m-%d %H:%M:%S ET')}\n"
+    message += f"• <b>Current uptime:</b> {uptime_str}\n"
+    message += f"• <b>Running process ID:</b> {os.getpid()}"
+    
+    return message
+
+def handle_sigusr1(signum, frame):
+    """Signal handler for SIGUSR1 to report uptime status via Telegram"""
+    status_message = get_uptime_status()
+    send_telegram_alert(status_message)
+
+def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
+    """
+    Background thread that listens for status requests from Telegram
+    Processes /status commands sent to the bot
+    """
+    telegram_url = f"https://api.telegram.org/bot{token}/getUpdates"
+    offset = None
+    
+    print(f"[Telegram Listener] Started with token: {token[:8]}... and chat_id: {chat_id}")
+    
+    while True:
+        try:
+            params = {
+                "timeout": 30,
+                "allowed_updates": ["message"]
+            }
+            
+            if offset:
+                params["offset"] = offset
+            
+            print(f"[Telegram Listener] Polling for updates...")
+            response = requests.get(telegram_url, params=params)
+            
+            if response.status_code == 200:
+                updates = response.json()
+                print(f"[Telegram Listener] Response: {json.dumps(updates)[:150]}...")
+                
+                if "result" in updates and updates["result"]:
+                    print(f"[Telegram Listener] Received {len(updates['result'])} updates")
+                    for update in updates["result"]:
+                        # Update offset to acknowledge this update
+                        offset = update["update_id"] + 1
+                        print(f"[Telegram Listener] Processing update {update['update_id']}")
+                        
+                        # Check if this is a message with text
+                        if "message" in update and "text" in update["message"]:
+                            message_text = update["message"]["text"]
+                            message_chat_id = str(update["message"]["chat"]["id"])
+                            print(f"[Telegram Listener] Message: '{message_text}' from chat_id: {message_chat_id}")
+                            
+                            # Check if this is a status command from the configured chat
+                            if message_text == "/status" and message_chat_id == chat_id:
+                                print(f"[Telegram Listener] Status command received from authorized chat")
+                                status_message = get_uptime_status()
+                                send_telegram_alert(status_message)
+                            else:
+                                print(f"[Telegram Listener] Not a status command or unauthorized chat")
+            else:
+                print(f"[Telegram Listener] Error: {response.status_code} - {response.text}")
+            
+            # Sleep to avoid hammering the API
+            time.sleep(5)
+            
+        except Exception as e:
+            print(f"[Telegram Listener] Error in Telegram listener: {e}")
+            # Sleep and continue on error
+            time.sleep(10)
+
 def main():
     """
     Main function to fetch live matches and print match details with team names and competition country using parallelization
@@ -1139,4 +1236,26 @@ def process_live_matches(country_map):
     print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
 
 if __name__ == "__main__":
+    # Register signal handler for SIGUSR1
+    signal.signal(signal.SIGUSR1, handle_sigusr1)
+    
+    # Send startup notification to Telegram
+    startup_message = f"🚀 <b>LIVE.PY STARTED</b>\n\nThe live data collection system has been started successfully."
+    send_telegram_alert(startup_message)
+    
+    # Register a cleanup handler to notify on shutdown
+    import atexit
+    def exit_handler():
+        exit_message = f"⛔ <b>LIVE.PY STOPPED</b>\n\nThe live data collection system has been stopped."
+        try:
+            send_telegram_alert(exit_message)
+        except:
+            pass  # Ensure no exceptions break the exit process
+    atexit.register(exit_handler)
+    
+    # Start Telegram listener thread
+    telegram_thread = threading.Thread(target=telegram_listener)
+    telegram_thread.daemon = True  # Allow main thread to exit even if this thread is still running
+    telegram_thread.start()
+    
     main()
