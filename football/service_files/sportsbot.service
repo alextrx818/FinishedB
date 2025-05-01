@@ -1,0 +1,24 @@
+[Unit]
+Description=Sports Bot Football Monitor
+After=network.target
+
+[Service]
+Type=notify
+User=root
+WorkingDirectory=/opt
+ExecStart=/bin/bash /opt/sportsbot_wrapper.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+WatchdogSec=30
+NotifyAccess=all
+
+# Send telegram alert on service failure
+ExecStopPost=/bin/bash -c 'python3 -c "import sys; sys.path.append(\"/root/CascadeProjects/sports_bot\"); from football.telegram import send_system_alert; send_system_alert(\"ALERT: Sports Bot Service Stopped\", alert_type=\"error\", error_details=\"The systemd service has stopped unexpectedly\")"'
+
+# Ensure proper file permissions and directory access
+UMask=0022
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=Sports Bot Terminal Display
+After=sportsbot.service
+Requires=sportsbot.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/CascadeProjects/sports_bot
+ExecStartPre=/bin/sleep 5
+ExecStart=/bin/bash -c 'tail -n 100 -f /root/CascadeProjects/sports_bot/football/logs/Terminal_Output.log'
+Restart=always
+RestartSec=5
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

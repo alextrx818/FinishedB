@@ -7,6 +7,52 @@ import traceback
 import argparse
 import datetime
 import pytz
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
+# Set up logging configuration
+log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+os.makedirs(log_dir, exist_ok=True)
+main_log_path = os.path.join(log_dir, "Main_Log.log")
+fetch_log_path = os.path.join(log_dir, "Fetch_History.log")
+terminal_log_path = os.path.join(log_dir, "Terminal_Output.log")
+
+# Create and configure the match logger
+match_logger = logging.getLogger("matches")
+match_logger.setLevel(logging.INFO)
+match_handler = RotatingFileHandler(main_log_path, maxBytes=10*1024*1024, backupCount=5)
+match_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+match_logger.addHandler(match_handler)
+
+# Create and configure the fetch history logger
+fetch_logger = logging.getLogger("fetch_history")
+fetch_logger.setLevel(logging.INFO)
+fetch_handler = RotatingFileHandler(fetch_log_path, maxBytes=10*1024*1024, backupCount=10)
+fetch_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+fetch_logger.addHandler(fetch_handler)
+
+# Create and configure the terminal output logger
+terminal_logger = logging.getLogger("terminal_output")
+terminal_logger.setLevel(logging.INFO)
+terminal_handler = RotatingFileHandler(terminal_log_path, maxBytes=10*1024*1024, backupCount=5)
+terminal_handler.setFormatter(logging.Formatter('%(message)s'))
+terminal_logger.addHandler(terminal_handler)
+
+# Override the built-in print function to also log to the terminal output file
+original_print = print
+def custom_print(*args, **kwargs):
+    # Call the original print function
+    original_print(*args, **kwargs)
+    
+    # Convert all arguments to strings and join them
+    message = " ".join(str(arg) for arg in args)
+    
+    # Log the message to the terminal output file
+    terminal_logger.info(message)
+
+# Replace the built-in print function with our custom version
+print = custom_print
 
 # Create a single session for all API calls
 session = requests.Session()
@@ -31,9 +77,11 @@ def fetch_live_matches():
         response.raise_for_status()
         
         data = response.json()
+        fetch_logger.info(f"Fetched live matches from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching live matches: {e}")
+        fetch_logger.error(f"Failed to fetch live matches from {url} with params: {params}. Error: {e}")
         return None
 
 def fetch_match_details(match_id):
@@ -52,9 +100,11 @@ def fetch_match_details(match_id):
         response.raise_for_status()
         
         data = response.json()
+        fetch_logger.info(f"Fetched match details for {match_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching details for match {match_id}: {e}")
+        fetch_logger.error(f"Failed to fetch match details for {match_id} from {url} with params: {params}. Error: {e}")
         return None
 
 @lru_cache(maxsize=None)
@@ -74,9 +124,11 @@ def fetch_team_info(team_id):
         response.raise_for_status()
         
         data = response.json()
+        fetch_logger.info(f"Fetched team info for {team_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching team info for {team_id}: {e}")
+        fetch_logger.error(f"Failed to fetch team info for {team_id} from {url} with params: {params}. Error: {e}")
         return None
 
 @lru_cache(maxsize=None)
@@ -96,9 +148,11 @@ def fetch_competition_info(competition_id):
         response.raise_for_status()
         
         data = response.json()
+        fetch_logger.info(f"Fetched competition info for {competition_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching competition info for {competition_id}: {e}")
+        fetch_logger.error(f"Failed to fetch competition info for {competition_id} from {url} with params: {params}. Error: {e}")
         return None
 
 def fetch_country_data():
@@ -117,9 +171,11 @@ def fetch_country_data():
         response.raise_for_status()
         
         data = response.json()
+        fetch_logger.info(f"Fetched country data from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching country data: {e}")
+        fetch_logger.error(f"Failed to fetch country data from {url} with params: {params}. Error: {e}")
         return None
 
 def extract_match_ids(matches_data):
@@ -266,9 +322,11 @@ def fetch_match_odds(match_id):
         response.raise_for_status()
         
         data = response.json()
+        fetch_logger.info(f"Fetched match odds for {match_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching odds for match {match_id}: {e}")
+        fetch_logger.error(f"Failed to fetch match odds for {match_id} from {url} with params: {params}. Error: {e}")
         return None
 
 def decimal_to_american(decimal_odds):
@@ -848,11 +906,11 @@ def main():
             if not continuous_mode:
                 break
                 
-            print(f"\nWaiting {interval} seconds before next update at {time.strftime('%Y-%m-%d %H:%M:%S')}...")
+            print(f"\nWaiting {interval} seconds before next update at {time.strftime('%H:%M:%S')}...")
             print(f"{'=' * 50}")
             time.sleep(interval)
             print(f"\n{'=' * 50}")
-            print(f"REFRESHING DATA AT: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            print(f"REFRESHING DATA AT: {time.strftime('%H:%M:%S')}")
             print(f"{'=' * 50}\n")
     
     except KeyboardInterrupt:
@@ -1049,6 +1107,24 @@ def process_live_matches(country_map):
             else:
                 print("\n--- MATCH ENVIRONMENT ---")
                 print("No environment data available for this match")
+            
+            # Log match data to file in JSON format for easier parsing by other tools
+            match_data = {
+                "timestamp": get_eastern_time().strftime('%Y-%m-%d %H:%M:%S ET'),
+                "competition_id": competition_id,
+                "competition": competition_name,
+                "country": competition_country,
+                "home_team": home_team_name,
+                "away_team": away_team_name,
+                "score": f"{home_live_score} - {away_live_score}",
+                "status": status_name,
+                "status_id": status_id,
+                "odds": formatted_odds,
+                "weather": weather_text,
+                "humidity": humidity_text,
+                "wind": wind_mph
+            }
+            match_logger.info(json.dumps(match_data))
             
             print("\n")
         except Exception as e:
