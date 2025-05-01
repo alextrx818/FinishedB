@@ -108,8 +108,36 @@ supervisorctl stop football-monitor
 - **Main_Log.log**: Complete record of all matches
 - **Reversed_Main_Log.log**: Same content with newest matches at the top
 
+## Recent Updates (May 2025)
+
+### Process Locking Enhancement
+- Added file-based process locking to ensure only one instance of live.py runs at a time
+- Prevents 409 Conflict errors with the Telegram API that occur with multiple instances
+- Implemented proper error messaging when attempting to start a duplicate instance
+- Automatic cleanup of lock files upon process termination
+
+### Telegram Functionality
+- Enhanced Telegram listener to properly respond to `/status` commands
+- Fixed issues with Telegram bot API conflicts
+- Added debug logging for Telegram message processing
+- Created test_telegram_status.py for diagnostic testing of Telegram functionality
+
+### Logging System
+- Maintained critical logging functionality in live.py
+- Ensured proper rotation of log files
+- Configured logging for debugging and operational tracking
+- Protected the logging structure which is essential for the 3start alert system
+
+### Documentation
+- Added detailed documentation in the Readme/ directory
+- Created separate documentation files for different components
+- Updated main README with recent changes and system overview
+
 ## Important Notes
 
 1. `live.py` is the core engine of the system and should not be modified unless absolutely necessary
 2. All timestamps in logs use Eastern Time (ET) for consistency
 3. The system is designed to run continuously and will automatically restart if any component crashes
+4. Never run multiple instances of live.py manually - the process lock will prevent this
+5. If you encounter "Another instance is already running" message and are sure no other instance exists, delete the lock file at `/root/CascadeProjects/sports_bot/football/live.lock`
+6. The 3start alert system depends on live.py and the main logging system to function properly
