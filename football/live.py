@@ -1,3 +1,5 @@
+import logger.main_logger
+
 import requests
 import json
 import time
@@ -21,6 +23,13 @@ session = requests.Session()
 # API credentials
 USER = "thenecpt"
 SECRET = "0c55322e8e196d6ef9066fa4252cf386"
+
+# Define standard datetime formats as constants
+DATE_FORMAT = "%m/%d/%Y"
+TIME_FORMAT = "%I:%M:%S %p ET"
+DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
+CONSOLE_TIME_FORMAT = "%I:%M:%S %p ET"  # For console output only
+API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p ET"  # For APIs and data
 
 def fetch_live_matches():
     """
@@ -797,15 +806,16 @@ def get_status_description(status_id):
     return status_mapping.get(code, f"Unknown (ID: {code})")
 
 def get_eastern_time():
-    """Get current time in US Eastern timezone (handles DST automatically)"""
+    """Get current time in Eastern timezone"""
     utc_now = datetime.datetime.now(pytz.utc)
     eastern = pytz.timezone('America/New_York')
-    return utc_now.astimezone(eastern)
+    eastern_time = utc_now.astimezone(eastern)
+    return eastern_time
 
 def send_telegram_alert(message, token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
     """Send an alert message via Telegram"""
+    timestamp = get_eastern_time().strftime(API_DATETIME_FORMAT)
     telegram_url = f"https://api.telegram.org/bot{token}/sendMessage"
-    timestamp = get_eastern_time().strftime("%Y-%m-%d %H:%M:%S ET")
     formatted_message = f"{message}\n\nTimestamp: {timestamp}"
     
     try:
@@ -825,31 +835,27 @@ def send_telegram_alert(message, token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiI
         print(f"Error sending Telegram alert: {e}")
 
 def get_uptime_status():
-    """Generate uptime status message for the application"""
+    """Generate a formatted status message about the application's uptime"""
     now = datetime.datetime.now()
     uptime = now - START_TIME
     
-    # Format uptime as days, hours, minutes, seconds
-    days = uptime.days
-    hours, remainder = divmod(uptime.seconds, 3600)
+    # Calculate hours, minutes, seconds
+    hours, remainder = divmod(uptime.total_seconds(), 3600)
     minutes, seconds = divmod(remainder, 60)
     
-    if days > 0:
-        uptime_str = f"{days}d {hours}h {minutes}m {seconds}s"
-    else:
-        uptime_str = f"{hours}h {minutes}m {seconds}s"
+    # Format the uptime string
+    uptime_str = f"{int(hours)}h {int(minutes)}m {int(seconds)}s"
     
-    # Use the get_eastern_time function to get current time in ET
-    eastern_time = get_eastern_time()
-    # Calculate the offset hours from current time
-    uptime_hours = uptime.total_seconds() / 3600
-    # Subtract uptime hours from current ET to get start time in ET
-    start_time_et = eastern_time - datetime.timedelta(hours=uptime_hours)
+    # Convert START_TIME to Eastern Time
+    eastern = pytz.timezone('America/New_York')
+    utc_start = pytz.utc.localize(START_TIME.replace(tzinfo=None))
+    start_time_et = utc_start.astimezone(eastern)
     
+    # Format the message with HTML formatting for Telegram
     message = f"📊 <b>LIVE.PY STATUS REPORT</b>\n\n"
-    message += f"• <b>Started at:</b> {start_time_et.strftime('%Y-%m-%d %H:%M:%S ET')}\n"
+    message += f"• <b>Started at:</b> {start_time_et.strftime(API_DATETIME_FORMAT)}\n"
     message += f"• <b>Current uptime:</b> {uptime_str}\n"
-    message += f"• <b>Running process ID:</b> {os.getpid()}"
+    message += f"• <b>Running process ID:</b> {os.getpid()}\n"
     
     return message
 
@@ -951,11 +957,16 @@ def main():
             if not continuous_mode:
                 break
                 
-            print(f"\nWaiting {interval} seconds before next update at {time.strftime('%H:%M:%S')}...")
+            # Convert current time to Eastern Time (ET)
+            eastern = pytz.timezone('America/New_York')
+            et_time = datetime.datetime.now(eastern)
+            et_time_str = et_time.strftime(CONSOLE_TIME_FORMAT)
+            
+            print(f"\nWaiting {interval} seconds before next update at {et_time_str}...")
             print(f"{'=' * 50}")
             time.sleep(interval)
             print(f"\n{'=' * 50}")
-            print(f"REFRESHING DATA AT: {time.strftime('%H:%M:%S')}")
+            print(f"REFRESHING DATA AT: {et_time.strftime(CONSOLE_TIME_FORMAT)}")
             print(f"{'=' * 50}\n")
     
     except KeyboardInterrupt:
@@ -982,7 +993,8 @@ def process_live_matches(country_map):
     
     # Print a header with total matches found
     print(f"\n===== FOUND {len(match_ids)} LIVE FOOTBALL MATCHES =====\n")
-    print(f"Last updated: {time.strftime('%Y-%m-%d %H:%M:%S')}")
+    eastern_now = get_eastern_time()
+    print(f"Last updated: {eastern_now.strftime(DATE_FORMAT)} {eastern_now.strftime(CONSOLE_TIME_FORMAT)}")
     
     # Process each match ID
     for i, match_id in enumerate(match_ids, 1):
@@ -1083,7 +1095,7 @@ def process_live_matches(country_map):
             
             # Print match summary
             print("\n----- MATCH SUMMARY -----")
-            print(f"Timestamp: {get_eastern_time().strftime('%Y-%m-%d %H:%M:%S ET')}")
+            print(f"Timestamp: {get_eastern_time().strftime(API_DATETIME_FORMAT)}")
             print(f"Competition ID: {competition_id}")
             print(f"Competition: {competition_name} ({competition_country})")
             print(f"Match: {home_team_name} vs {away_team_name}")
@@ -1155,7 +1167,7 @@ def process_live_matches(country_map):
             
             # Log match data to file in JSON format for easier parsing by other tools
             match_data = {
-                "timestamp": get_eastern_time().strftime('%Y-%m-%d %H:%M:%S ET'),
+                "timestamp": get_eastern_time().strftime(API_DATETIME_FORMAT),
                 "competition_id": competition_id,
                 "competition": competition_name,
                 "country": competition_country,
@@ -1191,6 +1203,9 @@ if __name__ == "__main__":
         # Attempt to acquire an exclusive lock (will fail if another instance has the lock)
         fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
         print(f"Acquired process lock. This is the only running instance.")
+        
+        # Logger is already initialized on import
+        print("Main logger is active...")
         
         # Register signal handler for SIGUSR1
         signal.signal(signal.SIGUSR1, handle_sigusr1)

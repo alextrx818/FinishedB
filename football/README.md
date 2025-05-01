@@ -14,6 +14,12 @@ The project is organized as follows:
 football/
 ├── live.py                     # Core data processing engine (never modify this file)
 │
+├── logger/                     # Logging system components
+│   ├── main_logger.py          # Logging system that overrides print() function
+│   ├── main.logger             # Log file containing all console output
+│   ├── __init__.py             # Package initialization
+│   └── README.md               # Documentation for the logging system
+│
 ├── logs/                       # Log directory
 │   ├── alerts/                 # Specialized log alerts
 │
@@ -103,10 +109,28 @@ tail -f logs/Main_Log.log
 supervisorctl stop football-monitor
 ```
 
-## Log Files
+## Logging System
 
-- **Main_Log.log**: Complete record of all matches
+The system uses a comprehensive logging approach with multiple log files:
+
+- **main.logger**: Complete record of all console output from live.py, captured by the `main_logger.py` module
+- **Main_Log.log**: Structured record of all matches from the specialized logging system
 - **Reversed_Main_Log.log**: Same content with newest matches at the top
+
+### Main Logger
+
+The Main Logger system automatically captures all console output:
+
+1. It intercepts all calls to `print()` in live.py
+2. Writes identical output to both the console and the log file
+3. Preserves formatting, timestamps, and session markers
+4. Initializes automatically when imported
+
+To ensure the Main Logger is active:
+- Import it at the top of your main script: `import logger.main_logger`
+- All `print()` calls will be automatically captured in `logger/main.logger`
+
+For full documentation of the Main Logger system, see `logger/README.md`.
 
 ## Recent Updates (May 2025)
 
@@ -123,7 +147,9 @@ supervisorctl stop football-monitor
 - Created test_telegram_status.py for diagnostic testing of Telegram functionality
 
 ### Logging System
-- Maintained critical logging functionality in live.py
+- Implemented main logger system to capture all console output
+- Created `logger/main_logger.py` to override the print function
+- Added `logger/main.logger` file to store all console output
 - Ensured proper rotation of log files
 - Configured logging for debugging and operational tracking
 - Protected the logging structure which is essential for the 3start alert system
@@ -132,6 +158,7 @@ supervisorctl stop football-monitor
 - Added detailed documentation in the Readme/ directory
 - Created separate documentation files for different components
 - Updated main README with recent changes and system overview
+- Added README for the logging system
 
 ## Important Notes
 

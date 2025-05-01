@@ -29,6 +29,7 @@ import json
 import time
 from datetime import datetime
 import traceback
+import pytz
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -68,6 +69,20 @@ MESSAGE_HISTORY = {
     'messages': [],
     'max_size': 10
 }
+
+# Import the datetime format constants from live.py
+try:
+    from football.live import API_DATETIME_FORMAT
+except ImportError:
+    # Define locally if import fails
+    API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p ET"
+
+def get_eastern_time():
+    """Get current time in Eastern timezone"""
+    utc_now = datetime.now(pytz.utc)
+    eastern = pytz.timezone('America/New_York')
+    eastern_time = utc_now.astimezone(eastern)
+    return eastern_time
 
 def _is_duplicate_message(message):
     """Check if a message is a duplicate of recent messages"""
@@ -212,7 +227,8 @@ def send_match_alert(message, match_id=None, teams=None, score=None, competition
     if match_id:
         formatted_message += f"*ID:* `{match_id}`\n"
         
-    formatted_message += f"\n*Time:* {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    eastern_time = get_eastern_time()
+    formatted_message += f"\n*Time:* {eastern_time.strftime(API_DATETIME_FORMAT)}"
     
     return _send_telegram_message(formatted_message)
 
@@ -251,7 +267,8 @@ def send_system_alert(message, alert_type="info", error_details=None, include_tr
         trace = traceback.format_exc()
         formatted_message += f"\n*Stack trace:* ```\n{trace[:800]}```"  # Limit length
         
-    formatted_message += f"\n*Time:* {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    eastern_time = get_eastern_time()
+    formatted_message += f"\n*Time:* {eastern_time.strftime(API_DATETIME_FORMAT)}"
     
     # Critical alerts shouldn't be silent
     silent = alert_type in ["info", "heartbeat"]
