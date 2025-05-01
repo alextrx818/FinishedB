@@ -7,57 +7,13 @@ import traceback
 import argparse
 import datetime
 import pytz
-import logging
-from logging.handlers import RotatingFileHandler
-import os
 import signal
 import threading
+import os
+import fcntl
 
 # Record when the script started
 START_TIME = datetime.datetime.now()
-
-# Set up logging configuration
-log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
-os.makedirs(log_dir, exist_ok=True)
-main_log_path = os.path.join(log_dir, "Main_Log.log")
-fetch_log_path = os.path.join(log_dir, "Fetch_History.log")
-terminal_log_path = os.path.join(log_dir, "Terminal_Output.log")
-
-# Create and configure the match logger
-match_logger = logging.getLogger("matches")
-match_logger.setLevel(logging.INFO)
-match_handler = RotatingFileHandler(main_log_path, maxBytes=10*1024*1024, backupCount=5)
-match_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-match_logger.addHandler(match_handler)
-
-# Create and configure the fetch history logger
-fetch_logger = logging.getLogger("fetch_history")
-fetch_logger.setLevel(logging.INFO)
-fetch_handler = RotatingFileHandler(fetch_log_path, maxBytes=10*1024*1024, backupCount=10)
-fetch_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
-fetch_logger.addHandler(fetch_handler)
-
-# Create and configure the terminal output logger
-terminal_logger = logging.getLogger("terminal_output")
-terminal_logger.setLevel(logging.INFO)
-terminal_handler = RotatingFileHandler(terminal_log_path, maxBytes=10*1024*1024, backupCount=5)
-terminal_handler.setFormatter(logging.Formatter('%(message)s'))
-terminal_logger.addHandler(terminal_handler)
-
-# Override the built-in print function to also log to the terminal output file
-original_print = print
-def custom_print(*args, **kwargs):
-    # Call the original print function
-    original_print(*args, **kwargs)
-    
-    # Convert all arguments to strings and join them
-    message = " ".join(str(arg) for arg in args)
-    
-    # Log the message to the terminal output file
-    terminal_logger.info(message)
-
-# Replace the built-in print function with our custom version
-print = custom_print
 
 # Create a single session for all API calls
 session = requests.Session()
@@ -82,11 +38,9 @@ def fetch_live_matches():
         response.raise_for_status()
         
         data = response.json()
-        fetch_logger.info(f"Fetched live matches from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching live matches: {e}")
-        fetch_logger.error(f"Failed to fetch live matches from {url} with params: {params}. Error: {e}")
         return None
 
 def fetch_match_details(match_id):
@@ -105,11 +59,9 @@ def fetch_match_details(match_id):
         response.raise_for_status()
         
         data = response.json()
-        fetch_logger.info(f"Fetched match details for {match_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching details for match {match_id}: {e}")
-        fetch_logger.error(f"Failed to fetch match details for {match_id} from {url} with params: {params}. Error: {e}")
         return None
 
 @lru_cache(maxsize=None)
@@ -129,11 +81,9 @@ def fetch_team_info(team_id):
         response.raise_for_status()
         
         data = response.json()
-        fetch_logger.info(f"Fetched team info for {team_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching team info for {team_id}: {e}")
-        fetch_logger.error(f"Failed to fetch team info for {team_id} from {url} with params: {params}. Error: {e}")
         return None
 
 @lru_cache(maxsize=None)
@@ -153,11 +103,9 @@ def fetch_competition_info(competition_id):
         response.raise_for_status()
         
         data = response.json()
-        fetch_logger.info(f"Fetched competition info for {competition_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching competition info for {competition_id}: {e}")
-        fetch_logger.error(f"Failed to fetch competition info for {competition_id} from {url} with params: {params}. Error: {e}")
         return None
 
 def fetch_country_data():
@@ -176,11 +124,9 @@ def fetch_country_data():
         response.raise_for_status()
         
         data = response.json()
-        fetch_logger.info(f"Fetched country data from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching country data: {e}")
-        fetch_logger.error(f"Failed to fetch country data from {url} with params: {params}. Error: {e}")
         return None
 
 def extract_match_ids(matches_data):
@@ -327,11 +273,9 @@ def fetch_match_odds(match_id):
         response.raise_for_status()
         
         data = response.json()
-        fetch_logger.info(f"Fetched match odds for {match_id} from {url} with params: {params}")
         return data
     except requests.exceptions.RequestException as e:
         print(f"Error fetching odds for match {match_id}: {e}")
-        fetch_logger.error(f"Failed to fetch match odds for {match_id} from {url} with params: {params}. Error: {e}")
         return None
 
 def decimal_to_american(decimal_odds):
@@ -934,33 +878,36 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
             if offset:
                 params["offset"] = offset
             
-            print(f"[Telegram Listener] Polling for updates...")
+            print(f"[Telegram Listener] Polling for updates with params: {params}")
             response = requests.get(telegram_url, params=params)
             
             if response.status_code == 200:
                 updates = response.json()
-                print(f"[Telegram Listener] Response: {json.dumps(updates)[:150]}...")
+                print(f"[Telegram Listener] Response: {json.dumps(updates)[:300]}...")
                 
                 if "result" in updates and updates["result"]:
                     print(f"[Telegram Listener] Received {len(updates['result'])} updates")
                     for update in updates["result"]:
                         # Update offset to acknowledge this update
                         offset = update["update_id"] + 1
-                        print(f"[Telegram Listener] Processing update {update['update_id']}")
+                        print(f"[Telegram Listener] Processing update {update['update_id']}: {json.dumps(update)[:150]}...")
                         
                         # Check if this is a message with text
                         if "message" in update and "text" in update["message"]:
                             message_text = update["message"]["text"]
                             message_chat_id = str(update["message"]["chat"]["id"])
-                            print(f"[Telegram Listener] Message: '{message_text}' from chat_id: {message_chat_id}")
+                            print(f"[Telegram Listener] Message: '{message_text}' from chat_id: {message_chat_id}, expected chat_id: {chat_id}")
                             
                             # Check if this is a status command from the configured chat
-                            if message_text == "/status" and message_chat_id == chat_id:
+                            if message_text.lower() == "/status" and message_chat_id == chat_id:
                                 print(f"[Telegram Listener] Status command received from authorized chat")
                                 status_message = get_uptime_status()
+                                print(f"[Telegram Listener] Sending status message: {status_message[:100]}...")
                                 send_telegram_alert(status_message)
                             else:
-                                print(f"[Telegram Listener] Not a status command or unauthorized chat")
+                                print(f"[Telegram Listener] Not a status command or unauthorized chat: '{message_text}' != '/status' or '{message_chat_id}' != '{chat_id}'")
+                else:
+                    print(f"[Telegram Listener] No updates in response")
             else:
                 print(f"[Telegram Listener] Error: {response.status_code} - {response.text}")
             
@@ -969,6 +916,7 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
             
         except Exception as e:
             print(f"[Telegram Listener] Error in Telegram listener: {e}")
+            traceback.print_exc()
             # Sleep and continue on error
             time.sleep(10)
 
@@ -981,20 +929,20 @@ def main():
         country_data = fetch_country_data()
         country_map = create_country_id_to_name_map(country_data)
         
-        # Process matches once by default, continuously if specified
-        continuous_mode = False
+        # Always run in continuous mode by default
+        continuous_mode = True
         interval = 30  # Default interval in seconds
         
         # Check for command line arguments
         parser = argparse.ArgumentParser(description='Live Football Match Monitor')
-        parser.add_argument('-c', '--continuous', action='store_true', help='Run in continuous mode')
+        parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
         parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
         args = parser.parse_args()
         
-        if args.continuous:
-            continuous_mode = True
-            if args.interval:
-                interval = args.interval
+        if args.single:
+            continuous_mode = False
+        if args.interval:
+            interval = args.interval
         
         # Run the fetch process in a loop if continuous mode is enabled
         while True:
@@ -1221,7 +1169,6 @@ def process_live_matches(country_map):
                 "humidity": humidity_text,
                 "wind": wind_mph
             }
-            match_logger.info(json.dumps(match_data))
             
             print("\n")
         except Exception as e:
@@ -1236,26 +1183,46 @@ def process_live_matches(country_map):
     print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
 
 if __name__ == "__main__":
-    # Register signal handler for SIGUSR1
-    signal.signal(signal.SIGUSR1, handle_sigusr1)
+    # Create a lock file to ensure only one instance runs at a time
+    lock_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live.lock")
+    lock_file = open(lock_file_path, "w")
     
-    # Send startup notification to Telegram
-    startup_message = f"🚀 <b>LIVE.PY STARTED</b>\n\nThe live data collection system has been started successfully."
-    send_telegram_alert(startup_message)
-    
-    # Register a cleanup handler to notify on shutdown
-    import atexit
-    def exit_handler():
-        exit_message = f"⛔ <b>LIVE.PY STOPPED</b>\n\nThe live data collection system has been stopped."
-        try:
-            send_telegram_alert(exit_message)
-        except:
-            pass  # Ensure no exceptions break the exit process
-    atexit.register(exit_handler)
-    
-    # Start Telegram listener thread
-    telegram_thread = threading.Thread(target=telegram_listener)
-    telegram_thread.daemon = True  # Allow main thread to exit even if this thread is still running
-    telegram_thread.start()
-    
-    main()
+    try:
+        # Attempt to acquire an exclusive lock (will fail if another instance has the lock)
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        print(f"Acquired process lock. This is the only running instance.")
+        
+        # Register signal handler for SIGUSR1
+        signal.signal(signal.SIGUSR1, handle_sigusr1)
+        
+        # Send startup notification to Telegram
+        startup_message = f"🚀 <b>LIVE.PY STARTED</b>\n\nThe live data collection system has been started successfully."
+        send_telegram_alert(startup_message)
+        
+        # Register a cleanup handler to notify on shutdown
+        import atexit
+        def exit_handler():
+            exit_message = f"⛔ <b>LIVE.PY STOPPED</b>\n\nThe live data collection system has been stopped."
+            try:
+                send_telegram_alert(exit_message)
+                # Release lock and close file
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
+                lock_file.close()
+                # Remove lock file on clean exit
+                if os.path.exists(lock_file_path):
+                    os.remove(lock_file_path)
+            except:
+                pass  # Ensure no exceptions break the exit process
+        atexit.register(exit_handler)
+        
+        # Start Telegram listener thread
+        telegram_thread = threading.Thread(target=telegram_listener)
+        telegram_thread.daemon = True  # Allow main thread to exit even if this thread is still running
+        telegram_thread.start()
+        
+        main()
+        
+    except IOError:
+        print(f"Failed to acquire process lock. Another instance is already running.")
+        print(f"If you're sure no other instance is running, delete the lock file: {lock_file_path}")
+        sys.exit(1)

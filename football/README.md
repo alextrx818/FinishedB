@@ -1,6 +1,6 @@
 # Football Live Monitoring System
 
-A comprehensive system for monitoring live football matches, capturing odds data, and generating specialized logs for matches meeting specific criteria such as over/under lines.
+A comprehensive system for monitoring live football matches, capturing odds data, and generating specialized logs for matches meeting specific criteria.
 
 ## System Overview
 
@@ -16,7 +16,6 @@ football/
 │
 ├── logs/                       # Log directory
 │   ├── alerts/                 # Specialized log alerts
-│   │   └── 3Start.py           # System for tracking matches with O/U line ≥ 3.0
 │
 ├── telegram/                   # Telegram notification components
 │   ├── __init__.py             # Module initialization
@@ -34,11 +33,7 @@ football/
 │
 └── logs/                       # Log directory
     ├── Main_Log.log            # Main log of all matches (source of truth)
-    ├── Reversed_Main_Log.log   # Same log with newest entries first
-    └── log_alerts/             # Specialized log filters
-        └── 3start/             # Over/Under 3.0 filter
-            ├── 3_start.log     # Log of matches with O/U line ≥ 3.0
-            └── log_filter.py   # Filter script
+    └── Reversed_Main_Log.log   # Same log with newest entries first
 ```
 
 ## Getting Started
@@ -100,7 +95,6 @@ supervisorctl status football-monitor
 
 # Check logs
 tail -f logs/Main_Log.log
-tail -f logs/log_alerts/3start/3_start.log
 ```
 
 ### Stopping the System
@@ -113,7 +107,6 @@ supervisorctl stop football-monitor
 
 - **Main_Log.log**: Complete record of all matches
 - **Reversed_Main_Log.log**: Same content with newest matches at the top
-- **3_start.log**: Specialized log of matches with Over/Under line of 3.0 or higher
 
 ## Important Notes
 
