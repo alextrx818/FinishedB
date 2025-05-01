@@ -9,6 +9,7 @@ FOOTBALL_DIR="$PROJECT_DIR/football"
 SCRIPTS_DIR="$FOOTBALL_DIR/Start_sh"
 LOGS_DIR="$FOOTBALL_DIR/logs"
 WRAPPER_SCRIPT="$SCRIPTS_DIR/run_live.py"
+DAEMON_SCRIPT="$SCRIPTS_DIR/daemon_launcher.py"
 MAIN_LOG="$LOGS_DIR/Main_Log.log"
 
 # Ensure log directory exists
@@ -24,12 +25,16 @@ echo ""
 
 # Make sure the wrapper script is executable
 chmod +x "$WRAPPER_SCRIPT"
+chmod +x "$DAEMON_SCRIPT" 2>/dev/null
 
 # Default settings
 BACKGROUND=false
 TERMINAL=false
+DAEMON=false
+DAEMON_ACTION="start"
 COMMAND="python3"
 ARGS=""
+AUTO_RUN=false
 
 # Parse command line arguments
 while [[ "$#" -gt 0 ]]; do
@@ -40,6 +45,21 @@ while [[ "$#" -gt 0 ]]; do
         --terminal|-t)
             TERMINAL=true
             ;;
+        --daemon|-d)
+            DAEMON=true
+            ;;
+        --daemon-stop)
+            DAEMON=true
+            DAEMON_ACTION="stop"
+            ;;
+        --daemon-status)
+            DAEMON=true
+            DAEMON_ACTION="status"
+            ;;
+        --daemon-restart)
+            DAEMON=true
+            DAEMON_ACTION="restart"
+            ;;
         --interval|-i)
             ARGS="$ARGS --interval $2"
             shift
@@ -47,17 +67,43 @@ while [[ "$#" -gt 0 ]]; do
         --continuous|-c)
             ARGS="$ARGS --continuous"
             ;;
+        --auto|-a)
+            AUTO_RUN=true
+            ARGS="$ARGS --continuous"
+            ;;
         *)
             echo "Unknown parameter: $1"
-            echo "Usage: $0 [--background|-b] [--terminal|-t] [--interval|-i N] [--continuous|-c]"
+            echo "Usage: $0 [--background|-b] [--terminal|-t] [--daemon|-d] [--daemon-stop] [--daemon-status] [--daemon-restart] [--interval|-i N] [--continuous|-c] [--auto|-a]"
             exit 1
             ;;
     esac
     shift
 done
 
+# If auto-run mode is enabled, use the auto-start script
+if [ "$AUTO_RUN" = true ]; then
+    echo "Starting in auto-run mode with continuous execution via Supervisor..."
+    exec sudo "$SCRIPTS_DIR/auto_start.sh"
+    exit 0  # This line shouldn't be reached as exec replaces the current process
+fi
+
 # Run the wrapper script
 cd "$PROJECT_DIR" || exit 1
+
+# Handle daemon mode (full background process with auto-restart)
+if [ "$DAEMON" = true ]; then
+    echo "Operating football monitor in daemon mode..."
+    
+    # Check if daemon launcher exists
+    if [ ! -f "$DAEMON_SCRIPT" ]; then
+        echo "Error: Daemon launcher script not found at $DAEMON_SCRIPT"
+        exit 1
+    fi
+    
+    # Execute the appropriate daemon action
+    "$COMMAND" "$DAEMON_SCRIPT" "$DAEMON_ACTION"
+    exit $?
+fi
 
 # Handle terminal mode with tmux/screen
 if [ "$TERMINAL" = true ]; then

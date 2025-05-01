@@ -27,6 +27,12 @@ LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 os.makedirs(LOG_DIR, exist_ok=True)
 MAIN_LOG = os.path.join(LOG_DIR, "Main_Log.log")
 
+# Define log filter paths
+LOG_ALERTS_DIR = os.path.join(LOG_DIR, "log_alerts")
+TOTAL_3_DIR = os.path.join(LOG_ALERTS_DIR, "3start")
+TOTAL_3_SCRIPT = os.path.join(TOTAL_3_DIR, "3start.sh")
+MAIN_LOG_SCRIPT = os.path.join(LOG_DIR, "Main_log_logic.py")
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -155,6 +161,33 @@ def record_pid():
     except Exception as e:
         logging.error(f"Failed to record PID: {str(e)}")
 
+def start_log_filter():
+    """Start the log filter in background mode"""
+    try:
+        # Start the 3+ total log filter
+        if os.path.exists(TOTAL_3_SCRIPT):
+            logging.info("Starting 3+ total log filter...")
+            subprocess.Popen([TOTAL_3_SCRIPT, "start"], 
+                             cwd=TOTAL_3_DIR,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+            logging.info("3+ total log filter started successfully")
+        else:
+            logging.warning(f"3+ total log filter script not found at {TOTAL_3_SCRIPT}")
+            
+        # Start the Main Log logic system
+        if os.path.exists(MAIN_LOG_SCRIPT):
+            logging.info("Starting Main Log Management System...")
+            subprocess.Popen([sys.executable, MAIN_LOG_SCRIPT, "start"], 
+                             cwd=LOG_DIR,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+            logging.info("Main Log Management System started successfully")
+        else:
+            logging.warning(f"Main Log Management script not found at {MAIN_LOG_SCRIPT}")
+    except Exception as e:
+        logging.error(f"Error starting log filters: {str(e)}")
+
 def main():
     """Main function that initiates all monitoring and runs the live.py script"""
     # Record the current PID
@@ -175,6 +208,9 @@ def main():
     # Start the watchdog thread
     threading.Thread(target=watchdog, daemon=True).start()
     logging.info("Watchdog monitoring thread started")
+    
+    # Start the log filter
+    start_log_filter()
     
     try:
         # Create a custom output capture that writes to both console and log
