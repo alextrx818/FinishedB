@@ -981,20 +981,20 @@ def main():
         country_data = fetch_country_data()
         country_map = create_country_id_to_name_map(country_data)
         
-        # Process matches once by default, continuously if specified
-        continuous_mode = False
+        # Always run in continuous mode by default
+        continuous_mode = True
         interval = 30  # Default interval in seconds
         
         # Check for command line arguments
         parser = argparse.ArgumentParser(description='Live Football Match Monitor')
-        parser.add_argument('-c', '--continuous', action='store_true', help='Run in continuous mode')
+        parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
         parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
         args = parser.parse_args()
         
-        if args.continuous:
-            continuous_mode = True
-            if args.interval:
-                interval = args.interval
+        if args.single:
+            continuous_mode = False
+        if args.interval:
+            interval = args.interval
         
         # Run the fetch process in a loop if continuous mode is enabled
         while True:
