@@ -1,32 +1,19 @@
-Last updated: 05/01/2025 11:03:24 PM ET
-
-===== FOUND 8 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
 ==================================================
 
-REFRESHING DATA AT: 11:02:54 PM ET
-
-==================================================
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram Listener] Response: {"ok": true, "result": []}...
-==================================================
-
-Waiting 30 seconds before next update at 11:02:54 PM ET...
+Waiting 30 seconds before next update at 11:40:42 PM ET...
 Refreshing in 30 seconds... (Press Ctrl+C to exit)
 ==================================================
-END OF LIVE MATCH DATA - 9 MATCHES DISPLAYED
-==================================================
---- Summary Set #28 for 05/01/2025 --- 11:02:54 PM ET
-==================================================
-MATCH #9 OF 9
+END OF LIVE MATCH DATA - 6 MATCHES DISPLAYED
 ==================================================
 
+--- Summary Set #12 for 05/01/2025 --- 11:40:42 PM ET
 ==================================================
+                  MATCH #6 OF 6                   
+==================================================
+
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:54 PM ET
+Timestamp: 05/01/2025 11:40:42 PM ET
 Match ID: zp5rzgh58npdq82
 Competition ID: v2y8m4zhgxoql07
 Competition: Western Australia Women's League (Australia)
@@ -50,18 +37,17 @@ Humidity: 37%
 Wind: 5.3m/s (11.9 mph)
 
 
-[PNTS3_START] saw Over/Under line: 3.75
-[PNTS3_START] Processing match #9 with line 3.75
+[PNTS3_START] Skipping already seen Competition ID: v2y8m4zhgxoql07
+
+
+--- Summary Set #11 for 05/01/2025 --- 11:40:41 PM ET
 ==================================================
---- Summary Set #27 for 05/01/2025 --- 11:02:53 PM ET
-==================================================
-MATCH #8 OF 9
+                  MATCH #5 OF 6                   
 ==================================================
 
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:53 PM ET
+Timestamp: 05/01/2025 11:40:41 PM ET
 Match ID: 318q66hw5jv3qo9
 Competition ID: 56ypq3nhzogmd7o
 Competition: Portuguese Champions Nacional Juniores A 2 (Portugal)
@@ -85,18 +71,17 @@ Humidity: 91%
 Wind: 3.7m/s (8.3 mph)
 
 
-[PNTS3_START] saw Over/Under line: 3.5
-[PNTS3_START] Processing match #8 with line 3.5
+[PNTS3_START] Skipping already seen Competition ID: 56ypq3nhzogmd7o
+
+
+--- Summary Set #10 for 05/01/2025 --- 11:40:41 PM ET
 ==================================================
---- Summary Set #26 for 05/01/2025 --- 11:02:52 PM ET
-==================================================
-MATCH #7 OF 9
+                  MATCH #4 OF 6                   
 ==================================================
 
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:52 PM ET
+Timestamp: 05/01/2025 11:40:41 PM ET
 Match ID: 318q66hw9y87qo9
 Competition ID: yl5ergphd2r8k0o
 Competition: Moldova Division 2 (Moldova)
@@ -118,177 +103,56 @@ No environment data available for this match
 
 [PNTS3_START] saw Over/Under line: 2.5
 [PNTS3_START] Ignoring match with line 2.5 (below threshold)
+
+
+--- Summary Set #9 for 05/01/2025 --- 11:40:40 PM ET
 ==================================================
---- Summary Set #25 for 05/01/2025 --- 11:02:52 PM ET
-==================================================
-MATCH #6 OF 9
+                  MATCH #3 OF 6                   
 ==================================================
 
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:52 PM ET
-Match ID: 4jwq2ghno21om0v
-Competition ID: p3glrw7hjk4qdyj
-Competition: Nicaragua Liga Primera (Nicaragua)
-Match: HYH Export Sebaco FC vs Deportivo Ocotal
-Score: 2 - 1 (HT: 0 - 1)
+Timestamp: 05/01/2025 11:40:40 PM ET
+Match ID: 8yomo4h3d13eq0j
+Competition ID: 9k82rekh52repzj
+Competition: Chinese Football Super League (China)
+Match: Shandong Taishan FC vs Qingdao Hainiu FC
+Score: 1 - 1 (HT: 0 - 0)
 Status: Finished (Status ID: 8)
 
 --- MATCH BETTING ODDS ---
 ML (Money Line):
-Time: pre-match min | Home: -303 | Draw: +350 | Away: +700 (Closest time to minutes 4-6 available: pre-match)
+Time: 4 min | Home: -455 | Draw: +500 | Away: +1000
 
 SPREAD (Asia Handicap):
-Time: pre-match min | Home: -122 | Handicap: 1.25 | Away: -103 (Closest time to minutes 4-6 available: pre-match)
+Time: 4 min | Home: +103 | Handicap: 2.0 | Away: -120
 
 Over/Under:
-Time: pre-match min | Over: -125 | Line: 2.75 | Under: +100 (Closest time to minutes 4-6 available: pre-match)
+Time: 4 min | Over: +100 | Line: 3.5 | Under: -125
 
 --- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 41%
-Wind: 0.9m/s (2.0 mph)
+Weather: Cloudy
+Humidity: 27%
+Wind: 3.2m/s (7.2 mph)
 
 
-[PNTS3_START] saw Over/Under line: 2.75
-[PNTS3_START] Ignoring match with line 2.75 (below threshold)
+[PNTS3_START] Skipping already seen Competition ID: 9k82rekh52repzj
+
+
+--- Summary Set #8 for 05/01/2025 --- 11:40:38 PM ET
+==================================================
+                  MATCH #2 OF 6                   
 ==================================================
 
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #24 for 05/01/2025 --- 11:02:51 PM ET
-==================================================
-MATCH #5 OF 9
-==================================================
-
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:51 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-[PNTS3_START] No Over/Under line found in chunk
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #23 for 05/01/2025 --- 11:02:50 PM ET
-==================================================
-MATCH #4 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:50 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-[PNTS3_START] No Over/Under line found in chunk
-==================================================
---- Summary Set #22 for 05/01/2025 --- 11:02:50 PM ET
-==================================================
-MATCH #3 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:50 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-[PNTS3_START] saw Over/Under line: 3.0
-[PNTS3_START] Processing match #7 with line 3.0
-==================================================
---- Summary Set #21 for 05/01/2025 --- 11:02:49 PM ET
-==================================================
-MATCH #2 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:49 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-[PNTS3_START] saw Over/Under line: 2.75
-[PNTS3_START] Ignoring match with line 2.75 (below threshold)
-==================================================
---- Summary Set #20 for 05/01/2025 --- 11:02:48 PM ET
-==================================================
-MATCH #1 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:48 PM ET
+Timestamp: 05/01/2025 11:40:38 PM ET
 Match ID: y0or5jh8xgo4qwz
 Competition ID: gpxwrxlh0nryk0j
 Competition: CNCF CHL (Unknown Country)
 Match: Cruz Azul vs Tigres UANL
 Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
+Status: Second half (Status ID: 4)
 
 --- MATCH BETTING ODDS ---
 ML (Money Line):
@@ -302,332 +166,56 @@ Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
 
 --- MATCH ENVIRONMENT ---
 Weather: Windy
-Humidity: 45%
+Humidity: 46%
 Wind: 4.1m/s (9.2 mph)
 
 
 [PNTS3_START] saw Over/Under line: 2.0
 [PNTS3_START] Ignoring match with line 2.0 (below threshold)
+
+
+--- Summary Set #7 for 05/01/2025 --- 11:40:38 PM ET
 ==================================================
-Last updated: 05/01/2025 11:02:46 PM ET
-
-===== FOUND 9 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
-==================================================
-
-REFRESHING DATA AT: 11:02:16 PM ET
-
-==================================================
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram Listener] Response: {"ok": true, "result": []}...
+                  MATCH #1 OF 6                   
 ==================================================
 
-Waiting 30 seconds before next update at 11:02:16 PM ET...
-Refreshing in 30 seconds... (Press Ctrl+C to exit)
-==================================================
-END OF LIVE MATCH DATA - 9 MATCHES DISPLAYED
-==================================================
---- Summary Set #19 for 05/01/2025 --- 11:02:16 PM ET
-==================================================
-MATCH #9 OF 9
-==================================================
-
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:16 PM ET
-Match ID: zp5rzgh58npdq82
-Competition ID: v2y8m4zhgxoql07
-Competition: Western Australia Women's League (Australia)
-Match: Balcatta (w) vs Murdoch University Melville FC (w)
-Score: 5 - 0 (HT: 3 - 0)
-Status: Finished (Status ID: 8)
+Timestamp: 05/01/2025 11:40:38 PM ET
+Match ID: zp5rzghgyk6zq82
+Competition ID: e4wyrn4hd4lq86p
+Competition: Fijian National League (Fiji)
+Match: Rewa FC vs Navua FC
+Score: 1 - 0 (HT: 1 - 0)
+Status: First half (Status ID: 2)
 
 --- MATCH BETTING ODDS ---
 ML (Money Line):
-Time: 4 min | Home: -3333 | Draw: +1400 | Away: +5000
+Time: 5 min | Home: -125 | Draw: +300 | Away: +250
 
 SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: 3.5 | Away: -125
+Time: 5 min | Home: -122 | Handicap: 0.5 | Away: -103
 
 Over/Under:
-Time: 4 min | Over: -115 | Line: 3.75 | Under: -109
+Time: 5 min | Over: -105 | Line: 2.75 | Under: -118
 
 --- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-[PNTS3_START] saw Over/Under line: 3.75
-[PNTS3_START] Processing match #6 with line 3.75
-==================================================
---- Summary Set #18 for 05/01/2025 --- 11:02:15 PM ET
-==================================================
-MATCH #8 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:15 PM ET
-Match ID: 318q66hw5jv3qo9
-Competition ID: 56ypq3nhzogmd7o
-Competition: Portuguese Champions Nacional Juniores A 2 (Portugal)
-Match: Vitoria SC Guimaraes U19 vs Tondela U19
-Score: 1 - 2 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: pre-match min | Home: +15000 | Draw: +2200 | Away: -10000 (Closest time to minutes 4-6 available: pre-match)
-
-SPREAD (Asia Handicap):
-Time: pre-match min | Home: -333 | Handicap: 0.0 | Away: +245 (Closest time to minutes 4-6 available: pre-match)
-
-Over/Under:
-Time: pre-match min | Over: +900 | Line: 3.5 | Under: -1667 (Closest time to minutes 4-6 available: pre-match)
-
---- MATCH ENVIRONMENT ---
-Weather: Foggy
-Humidity: 91%
+Weather: Partially cloudy
+Humidity: 70%
 Wind: 3.7m/s (8.3 mph)
 
 
-[PNTS3_START] saw Over/Under line: 3.5
-[PNTS3_START] Processing match #5 with line 3.5
-==================================================
---- Summary Set #17 for 05/01/2025 --- 11:02:15 PM ET
-==================================================
-MATCH #7 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:15 PM ET
-Match ID: 318q66hw9y87qo9
-Competition ID: yl5ergphd2r8k0o
-Competition: Moldova Division 2 (Moldova)
-Match: Saxan Ceadir Lunga vs FC Ursidos Stauceni
-Score: 1 - 1 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -127 | Handicap: 0.5 | Away: -118 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 4 min | Over: -154 | Line: 2.5 | Under: +110
-
---- MATCH ENVIRONMENT ---
-No environment data available for this match
-
-
-[PNTS3_START] saw Over/Under line: 2.5
-[PNTS3_START] Ignoring match with line 2.5 (below threshold)
-==================================================
---- Summary Set #16 for 05/01/2025 --- 11:02:14 PM ET
-==================================================
-MATCH #6 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:14 PM ET
-Match ID: 4jwq2ghno21om0v
-Competition ID: p3glrw7hjk4qdyj
-Competition: Nicaragua Liga Primera (Nicaragua)
-Match: HYH Export Sebaco FC vs Deportivo Ocotal
-Score: 2 - 1 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: pre-match min | Home: -303 | Draw: +350 | Away: +700 (Closest time to minutes 4-6 available: pre-match)
-
-SPREAD (Asia Handicap):
-Time: pre-match min | Home: -122 | Handicap: 1.25 | Away: -103 (Closest time to minutes 4-6 available: pre-match)
-
-Over/Under:
-Time: pre-match min | Over: -125 | Line: 2.75 | Under: +100 (Closest time to minutes 4-6 available: pre-match)
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 41%
-Wind: 0.9m/s (2.0 mph)
-
-
 [PNTS3_START] saw Over/Under line: 2.75
 [PNTS3_START] Ignoring match with line 2.75 (below threshold)
-==================================================
 
+Last updated: 05/01/2025 11:40:37 PM ET
 
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #15 for 05/01/2025 --- 11:02:14 PM ET
-==================================================
-MATCH #5 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:14 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-[PNTS3_START] No Over/Under line found in chunk
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #14 for 05/01/2025 --- 11:02:13 PM ET
-==================================================
-MATCH #4 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:13 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-[PNTS3_START] No Over/Under line found in chunk
-==================================================
---- Summary Set #13 for 05/01/2025 --- 11:02:13 PM ET
-==================================================
-MATCH #3 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:13 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-[PNTS3_START] saw Over/Under line: 3.0
-[PNTS3_START] Processing match #4 with line 3.0
-==================================================
---- Summary Set #12 for 05/01/2025 --- 11:02:11 PM ET
-==================================================
-MATCH #2 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:11 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-[PNTS3_START] saw Over/Under line: 2.75
-[PNTS3_START] Ignoring match with line 2.75 (below threshold)
-==================================================
---- Summary Set #11 for 05/01/2025 --- 11:02:10 PM ET
-==================================================
-MATCH #1 OF 9
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:02:10 PM ET
-Match ID: y0or5jh8xgo4qwz
-Competition ID: gpxwrxlh0nryk0j
-Competition: CNCF CHL (Unknown Country)
-Match: Cruz Azul vs Tigres UANL
-Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +125 | Draw: +187 | Away: +250
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -109 | Handicap: 0.25 | Away: -115
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Windy
-Humidity: 45%
-Wind: 4.1m/s (9.2 mph)
-
-
-[PNTS3_START] saw Over/Under line: 2.0
-[PNTS3_START] Ignoring match with line 2.0 (below threshold)
-==================================================
-Last updated: 05/01/2025 11:02:09 PM ET
-
-===== FOUND 9 LIVE FOOTBALL MATCHES =====
+===== FOUND 6 LIVE FOOTBALL MATCHES =====
 
 Fetching live matches...
 ==================================================
 
-REFRESHING DATA AT: 11:01:39 PM ET
+REFRESHING DATA AT: 11:40:07 PM ET
 
 ==================================================
 [Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
@@ -635,20 +223,20 @@ REFRESHING DATA AT: 11:01:39 PM ET
 [Telegram Listener] Response: {"ok": true, "result": []}...
 ==================================================
 
-Waiting 30 seconds before next update at 11:01:39 PM ET...
+Waiting 30 seconds before next update at 11:40:07 PM ET...
 Refreshing in 30 seconds... (Press Ctrl+C to exit)
 ==================================================
-END OF LIVE MATCH DATA - 10 MATCHES DISPLAYED
-==================================================
---- Summary Set #10 for 05/01/2025 --- 11:01:39 PM ET
-==================================================
-MATCH #10 OF 10
+END OF LIVE MATCH DATA - 6 MATCHES DISPLAYED
 ==================================================
 
+--- Summary Set #6 for 05/01/2025 --- 11:40:07 PM ET
 ==================================================
+                  MATCH #6 OF 6                   
+==================================================
+
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:39 PM ET
+Timestamp: 05/01/2025 11:40:07 PM ET
 Match ID: zp5rzgh58npdq82
 Competition ID: v2y8m4zhgxoql07
 Competition: Western Australia Women's League (Australia)
@@ -674,51 +262,17 @@ Wind: 5.3m/s (11.9 mph)
 
 [PNTS3_START] saw Over/Under line: 3.75
 [PNTS3_START] Processing match #3 with line 3.75
+[PNTS3_START] Logged match with Competition ID: v2y8m4zhgxoql07
+
+
+--- Summary Set #5 for 05/01/2025 --- 11:40:05 PM ET
 ==================================================
---- Summary Set #9 for 05/01/2025 --- 11:01:37 PM ET
-==================================================
-MATCH #9 OF 10
+                  MATCH #5 OF 6                   
 ==================================================
 
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:37 PM ET
-Match ID: y0or5jh8x38lqwz
-Competition ID: kjw2r09hj8rz84o
-Competition: Italian Primavera Cup (Italy)
-Match: Cagliari U19 vs AC Milan U20
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +240 | Draw: +240 | Away: +105
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -139 | Handicap: -0.5 | Away: +107
-
-Over/Under:
-Time: 4 min | Over: -109 | Line: 2.5 | Under: -115
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 48%
-Wind: 2.6m/s (5.8 mph)
-
-
-[PNTS3_START] saw Over/Under line: 2.5
-[PNTS3_START] Ignoring match with line 2.5 (below threshold)
-==================================================
---- Summary Set #8 for 05/01/2025 --- 11:01:36 PM ET
-==================================================
-MATCH #8 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:36 PM ET
+Timestamp: 05/01/2025 11:40:05 PM ET
 Match ID: 318q66hw5jv3qo9
 Competition ID: 56ypq3nhzogmd7o
 Competition: Portuguese Champions Nacional Juniores A 2 (Portugal)
@@ -744,16 +298,17 @@ Wind: 3.7m/s (8.3 mph)
 
 [PNTS3_START] saw Over/Under line: 3.5
 [PNTS3_START] Processing match #2 with line 3.5
+[PNTS3_START] Logged match with Competition ID: 56ypq3nhzogmd7o
+
+
+--- Summary Set #4 for 05/01/2025 --- 11:40:03 PM ET
 ==================================================
---- Summary Set #7 for 05/01/2025 --- 11:01:35 PM ET
-==================================================
-MATCH #7 OF 10
+                  MATCH #4 OF 6                   
 ==================================================
 
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:35 PM ET
+Timestamp: 05/01/2025 11:40:03 PM ET
 Match ID: 318q66hw9y87qo9
 Competition ID: yl5ergphd2r8k0o
 Competition: Moldova Division 2 (Moldova)
@@ -775,182 +330,58 @@ No environment data available for this match
 
 [PNTS3_START] saw Over/Under line: 2.5
 [PNTS3_START] Ignoring match with line 2.5 (below threshold)
+
+
+--- Summary Set #3 for 05/01/2025 --- 11:40:00 PM ET
 ==================================================
---- Summary Set #6 for 05/01/2025 --- 11:01:33 PM ET
-==================================================
-MATCH #6 OF 10
+                  MATCH #3 OF 6                   
 ==================================================
 
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:33 PM ET
-Match ID: 4jwq2ghno21om0v
-Competition ID: p3glrw7hjk4qdyj
-Competition: Nicaragua Liga Primera (Nicaragua)
-Match: HYH Export Sebaco FC vs Deportivo Ocotal
-Score: 2 - 1 (HT: 0 - 1)
+Timestamp: 05/01/2025 11:40:00 PM ET
+Match ID: 8yomo4h3d13eq0j
+Competition ID: 9k82rekh52repzj
+Competition: Chinese Football Super League (China)
+Match: Shandong Taishan FC vs Qingdao Hainiu FC
+Score: 1 - 1 (HT: 0 - 0)
 Status: Finished (Status ID: 8)
 
 --- MATCH BETTING ODDS ---
 ML (Money Line):
-Time: pre-match min | Home: -303 | Draw: +350 | Away: +700 (Closest time to minutes 4-6 available: pre-match)
+Time: 4 min | Home: -455 | Draw: +500 | Away: +1000
 
 SPREAD (Asia Handicap):
-Time: pre-match min | Home: -122 | Handicap: 1.25 | Away: -103 (Closest time to minutes 4-6 available: pre-match)
+Time: 4 min | Home: +103 | Handicap: 2.0 | Away: -120
 
 Over/Under:
-Time: pre-match min | Over: -125 | Line: 2.75 | Under: +100 (Closest time to minutes 4-6 available: pre-match)
+Time: 4 min | Over: +100 | Line: 3.5 | Under: -125
 
 --- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 41%
-Wind: 0.9m/s (2.0 mph)
+Weather: Cloudy
+Humidity: 27%
+Wind: 3.2m/s (7.2 mph)
 
 
-[PNTS3_START] saw Over/Under line: 2.75
-[PNTS3_START] Ignoring match with line 2.75 (below threshold)
+[PNTS3_START] saw Over/Under line: 3.5
+[PNTS3_START] Processing match #1 with line 3.5
+[PNTS3_START] Logged match with Competition ID: 9k82rekh52repzj
+
+
+--- Summary Set #2 for 05/01/2025 --- 11:39:58 PM ET
+==================================================
+                  MATCH #2 OF 6                   
 ==================================================
 
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #5 for 05/01/2025 --- 11:01:32 PM ET
-==================================================
-MATCH #5 OF 10
-==================================================
-
-==================================================
 
 ----- MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:32 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-[PNTS3_START] No Over/Under line found in chunk
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #4 for 05/01/2025 --- 11:01:31 PM ET
-==================================================
-MATCH #4 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:31 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-[PNTS3_START] No Over/Under line found in chunk
-==================================================
---- Summary Set #3 for 05/01/2025 --- 11:01:30 PM ET
-==================================================
-MATCH #3 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:30 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-[PNTS3_START] saw Over/Under line: 3.0
-[PNTS3_START] Processing match #1 with line 3.0
-==================================================
---- Summary Set #2 for 05/01/2025 --- 11:01:27 PM ET
-==================================================
-MATCH #2 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:27 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-[PNTS3_START] saw Over/Under line: 2.75
-[PNTS3_START] Ignoring match with line 2.75 (below threshold)
-==================================================
---- Summary Set #1 for 05/01/2025 --- 11:01:25 PM ET
-
-============================================================
-  NEW LOG DATE: 05/01/2025
-============================================================
-
-==================================================
-MATCH #1 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:01:25 PM ET
+Timestamp: 05/01/2025 11:39:58 PM ET
 Match ID: y0or5jh8xgo4qwz
 Competition ID: gpxwrxlh0nryk0j
 Competition: CNCF CHL (Unknown Country)
 Match: Cruz Azul vs Tigres UANL
 Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
+Status: Second half (Status ID: 4)
 
 --- MATCH BETTING ODDS ---
 ML (Money Line):
@@ -970,15 +401,55 @@ Wind: 4.1m/s (9.2 mph)
 
 [PNTS3_START] saw Over/Under line: 2.0
 [PNTS3_START] Ignoring match with line 2.0 (below threshold)
-==================================================
-Last updated: 05/01/2025 11:01:23 PM ET
 
-===== FOUND 10 LIVE FOOTBALL MATCHES =====
+
+
+--------------------------------------------------
+Date: 05/01/2025
+--------------------------------------------------
+
+
+--- Summary Set #1 for 05/01/2025 --- 11:39:56 PM ET
+==================================================
+                  MATCH #1 OF 6                   
+==================================================
+
+
+----- MATCH SUMMARY -----
+Timestamp: 05/01/2025 11:39:56 PM ET
+Match ID: zp5rzghgyk6zq82
+Competition ID: e4wyrn4hd4lq86p
+Competition: Fijian National League (Fiji)
+Match: Rewa FC vs Navua FC
+Score: 1 - 0 (HT: 1 - 0)
+Status: First half (Status ID: 2)
+
+--- MATCH BETTING ODDS ---
+ML (Money Line):
+Time: 5 min | Home: -125 | Draw: +300 | Away: +250
+
+SPREAD (Asia Handicap):
+Time: 5 min | Home: -122 | Handicap: 0.5 | Away: -103
+
+Over/Under:
+Time: 5 min | Over: -105 | Line: 2.75 | Under: -118
+
+--- MATCH ENVIRONMENT ---
+Weather: Partially cloudy
+Humidity: 70%
+Wind: 3.7m/s (8.3 mph)
+
+
+[PNTS3_START] saw Over/Under line: 2.75
+[PNTS3_START] Ignoring match with line 2.75 (below threshold)
+
+Last updated: 05/01/2025 11:39:54 PM ET
+
+===== FOUND 6 LIVE FOOTBALL MATCHES =====
 
 Fetching live matches...
 [Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
 Fetching country data...
-[Telegram Listener] Started with token: 77649539... and chat_id: 6128359776
 Successfully sent Telegram alert: 🚀 <b>LIVE.PY STARTED</b>
 
 The live data collection system has been started successfully.
@@ -987,1509 +458,7 @@ Acquired process lock. This is the only running instance.
 [PNTS3_START] Filter initialized and registered with event listeners
 
 ==================================================
-LOGGER STARTED AT: 05/01/2025 11:01:22 PM ET
+LOGGER STARTED AT: 05/01/2025 11:39:53 PM ET
 ==================================================
 
 
---- Summary Set #46 for 05/01/2025 --- 11:00:51 PM ET
-==================================================
-MATCH #3 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:51 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-==================================================
---- Summary Set #45 for 05/01/2025 --- 11:00:50 PM ET
-==================================================
-MATCH #2 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:50 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-==================================================
---- Summary Set #44 for 05/01/2025 --- 11:00:49 PM ET
-==================================================
-MATCH #1 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:49 PM ET
-Match ID: y0or5jh8xgo4qwz
-Competition ID: gpxwrxlh0nryk0j
-Competition: CNCF CHL (Unknown Country)
-Match: Cruz Azul vs Tigres UANL
-Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +125 | Draw: +187 | Away: +250
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -109 | Handicap: 0.25 | Away: -115
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Windy
-Humidity: 45%
-Wind: 4.1m/s (9.2 mph)
-
-
-==================================================
-Last updated: 05/01/2025 11:00:48 PM ET
-
-===== FOUND 10 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
-==================================================
-
-REFRESHING DATA AT: 11:00:18 PM ET
-
-==================================================
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram Listener] Response: {"ok": true, "result": []}...
-==================================================
-
-Waiting 30 seconds before next update at 11:00:18 PM ET...
-Refreshing in 30 seconds... (Press Ctrl+C to exit)
-==================================================
-END OF LIVE MATCH DATA - 10 MATCHES DISPLAYED
-==================================================
---- Summary Set #43 for 05/01/2025 --- 11:00:18 PM ET
-==================================================
-MATCH #10 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:18 PM ET
-Match ID: zp5rzgh58npdq82
-Competition ID: v2y8m4zhgxoql07
-Competition: Western Australia Women's League (Australia)
-Match: Balcatta (w) vs Murdoch University Melville FC (w)
-Score: 5 - 0 (HT: 3 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -3333 | Draw: +1400 | Away: +5000
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: 3.5 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 3.75 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #42 for 05/01/2025 --- 11:00:17 PM ET
-==================================================
-MATCH #9 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:17 PM ET
-Match ID: y0or5jh8x38lqwz
-Competition ID: kjw2r09hj8rz84o
-Competition: Italian Primavera Cup (Italy)
-Match: Cagliari U19 vs AC Milan U20
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +240 | Draw: +240 | Away: +105
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -139 | Handicap: -0.5 | Away: +107
-
-Over/Under:
-Time: 4 min | Over: -109 | Line: 2.5 | Under: -115
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 48%
-Wind: 2.6m/s (5.8 mph)
-
-
-==================================================
---- Summary Set #41 for 05/01/2025 --- 11:00:16 PM ET
-==================================================
-MATCH #8 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:16 PM ET
-Match ID: 318q66hw9y87qo9
-Competition ID: yl5ergphd2r8k0o
-Competition: Moldova Division 2 (Moldova)
-Match: Saxan Ceadir Lunga vs FC Ursidos Stauceni
-Score: 1 - 1 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -127 | Handicap: 0.5 | Away: -118 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 4 min | Over: -154 | Line: 2.5 | Under: +110
-
---- MATCH ENVIRONMENT ---
-No environment data available for this match
-
-
-==================================================
---- Summary Set #40 for 05/01/2025 --- 11:00:16 PM ET
-==================================================
-MATCH #7 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:16 PM ET
-Match ID: 8yomo4h3wkj8q0j
-Competition ID: l965mkyhdgr1ge4
-Competition: Chilean Primera B (Chile)
-Match: D. Concepcion vs Santiago Morning
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +137 | Draw: +200 | Away: +187
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -101 | Handicap: 0.25 | Away: -130
-
-Over/Under:
-Time: 4 min | Over: +105 | Line: 2.25 | Under: -133
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 39%
-Wind: 1.2m/s (2.7 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #39 for 05/01/2025 --- 11:00:15 PM ET
-==================================================
-MATCH #6 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:15 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #38 for 05/01/2025 --- 11:00:14 PM ET
-==================================================
-MATCH #5 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:14 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #37 for 05/01/2025 --- 11:00:12 PM ET
-==================================================
-MATCH #4 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:12 PM ET
-Match ID: 2y8m4zh50lyeql0
-Competition ID: gpxwrxlhnnryk0j
-Competition: Malta Premier League (Malta)
-Match: St. Patrick FC vs Hibernians FC
-Score: 2 - 2 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -116 | Handicap: -0.75 | Away: -119 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 7 min | Over: -137 | Line: 2.5 | Under: -109 (Closest time to minutes 4-6 available: 7)
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #36 for 05/01/2025 --- 11:00:11 PM ET
-==================================================
-MATCH #3 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:11 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-==================================================
---- Summary Set #35 for 05/01/2025 --- 11:00:09 PM ET
-==================================================
-MATCH #2 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:09 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-==================================================
---- Summary Set #34 for 05/01/2025 --- 11:00:08 PM ET
-==================================================
-MATCH #1 OF 10
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 11:00:08 PM ET
-Match ID: y0or5jh8xgo4qwz
-Competition ID: gpxwrxlh0nryk0j
-Competition: CNCF CHL (Unknown Country)
-Match: Cruz Azul vs Tigres UANL
-Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +125 | Draw: +187 | Away: +250
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -109 | Handicap: 0.25 | Away: -115
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Windy
-Humidity: 43%
-Wind: 4.1m/s (9.2 mph)
-
-
-==================================================
-Last updated: 05/01/2025 11:00:06 PM ET
-
-===== FOUND 10 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
-==================================================
-
-REFRESHING DATA AT: 10:59:36 PM ET
-
-==================================================
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram Listener] Response: {"ok": true, "result": []}...
-==================================================
-
-Waiting 30 seconds before next update at 10:59:36 PM ET...
-Refreshing in 30 seconds... (Press Ctrl+C to exit)
-==================================================
-END OF LIVE MATCH DATA - 11 MATCHES DISPLAYED
-==================================================
---- Summary Set #33 for 05/01/2025 --- 10:59:36 PM ET
-==================================================
-MATCH #11 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:36 PM ET
-Match ID: zp5rzgh58npdq82
-Competition ID: v2y8m4zhgxoql07
-Competition: Western Australia Women's League (Australia)
-Match: Balcatta (w) vs Murdoch University Melville FC (w)
-Score: 5 - 0 (HT: 3 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -3333 | Draw: +1400 | Away: +5000
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: 3.5 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 3.75 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #32 for 05/01/2025 --- 10:59:35 PM ET
-==================================================
-MATCH #10 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:35 PM ET
-Match ID: y0or5jh8x38lqwz
-Competition ID: kjw2r09hj8rz84o
-Competition: Italian Primavera Cup (Italy)
-Match: Cagliari U19 vs AC Milan U20
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +240 | Draw: +240 | Away: +105
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -139 | Handicap: -0.5 | Away: +107
-
-Over/Under:
-Time: 4 min | Over: -109 | Line: 2.5 | Under: -115
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 48%
-Wind: 2.6m/s (5.8 mph)
-
-
-==================================================
---- Summary Set #31 for 05/01/2025 --- 10:59:34 PM ET
-==================================================
-MATCH #9 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:34 PM ET
-Match ID: 318q66hw9y87qo9
-Competition ID: yl5ergphd2r8k0o
-Competition: Moldova Division 2 (Moldova)
-Match: Saxan Ceadir Lunga vs FC Ursidos Stauceni
-Score: 1 - 1 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -127 | Handicap: 0.5 | Away: -118 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 4 min | Over: -154 | Line: 2.5 | Under: +110
-
---- MATCH ENVIRONMENT ---
-No environment data available for this match
-
-
-==================================================
---- Summary Set #30 for 05/01/2025 --- 10:59:34 PM ET
-==================================================
-MATCH #8 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:34 PM ET
-Match ID: 8yomo4h3wkj8q0j
-Competition ID: l965mkyhdgr1ge4
-Competition: Chilean Primera B (Chile)
-Match: D. Concepcion vs Santiago Morning
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +137 | Draw: +200 | Away: +187
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -101 | Handicap: 0.25 | Away: -130
-
-Over/Under:
-Time: 4 min | Over: +105 | Line: 2.25 | Under: -133
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 39%
-Wind: 1.2m/s (2.7 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #29 for 05/01/2025 --- 10:59:33 PM ET
-==================================================
-MATCH #7 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:33 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #28 for 05/01/2025 --- 10:59:33 PM ET
-==================================================
-MATCH #6 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:33 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #27 for 05/01/2025 --- 10:59:32 PM ET
-==================================================
-MATCH #5 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:32 PM ET
-Match ID: 2y8m4zh50lyeql0
-Competition ID: gpxwrxlhnnryk0j
-Competition: Malta Premier League (Malta)
-Match: St. Patrick FC vs Hibernians FC
-Score: 2 - 2 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -116 | Handicap: -0.75 | Away: -119 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 7 min | Over: -137 | Line: 2.5 | Under: -109 (Closest time to minutes 4-6 available: 7)
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #26 for 05/01/2025 --- 10:59:32 PM ET
-==================================================
-MATCH #4 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:32 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #25 for 05/01/2025 --- 10:59:30 PM ET
-==================================================
-MATCH #3 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:30 PM ET
-Match ID: pxwrxlhyp4p3ryk
-Competition ID: d23xmvkhgj0qg8n
-Competition: OFC W U16 (Unknown Country)
-Match: Cook Islands U16 (W) vs American Samoa U16(W)
-Score: 0 - 0 (HT: 0 - 0)
-Status: Abandoned (Status ID: 13)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #24 for 05/01/2025 --- 10:59:30 PM ET
-==================================================
-MATCH #2 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:30 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-==================================================
---- Summary Set #23 for 05/01/2025 --- 10:59:29 PM ET
-==================================================
-MATCH #1 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:59:29 PM ET
-Match ID: y0or5jh8xgo4qwz
-Competition ID: gpxwrxlh0nryk0j
-Competition: CNCF CHL (Unknown Country)
-Match: Cruz Azul vs Tigres UANL
-Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +125 | Draw: +187 | Away: +250
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -109 | Handicap: 0.25 | Away: -115
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Windy
-Humidity: 43%
-Wind: 4.1m/s (9.2 mph)
-
-
-==================================================
-Last updated: 05/01/2025 10:59:28 PM ET
-
-===== FOUND 11 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
-==================================================
-
-REFRESHING DATA AT: 10:58:57 PM ET
-
-==================================================
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram Listener] Response: {"ok": true, "result": []}...
-==================================================
-
-Waiting 30 seconds before next update at 10:58:57 PM ET...
-Refreshing in 30 seconds... (Press Ctrl+C to exit)
-==================================================
-END OF LIVE MATCH DATA - 11 MATCHES DISPLAYED
-==================================================
---- Summary Set #22 for 05/01/2025 --- 10:58:57 PM ET
-==================================================
-MATCH #11 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:57 PM ET
-Match ID: zp5rzgh58npdq82
-Competition ID: v2y8m4zhgxoql07
-Competition: Western Australia Women's League (Australia)
-Match: Balcatta (w) vs Murdoch University Melville FC (w)
-Score: 5 - 0 (HT: 3 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -3333 | Draw: +1400 | Away: +5000
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: 3.5 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 3.75 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #21 for 05/01/2025 --- 10:58:57 PM ET
-==================================================
-MATCH #10 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:57 PM ET
-Match ID: y0or5jh8x38lqwz
-Competition ID: kjw2r09hj8rz84o
-Competition: Italian Primavera Cup (Italy)
-Match: Cagliari U19 vs AC Milan U20
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +240 | Draw: +240 | Away: +105
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -139 | Handicap: -0.5 | Away: +107
-
-Over/Under:
-Time: 4 min | Over: -109 | Line: 2.5 | Under: -115
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 48%
-Wind: 2.6m/s (5.8 mph)
-
-
-==================================================
---- Summary Set #20 for 05/01/2025 --- 10:58:56 PM ET
-==================================================
-MATCH #9 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:56 PM ET
-Match ID: 318q66hw9y87qo9
-Competition ID: yl5ergphd2r8k0o
-Competition: Moldova Division 2 (Moldova)
-Match: Saxan Ceadir Lunga vs FC Ursidos Stauceni
-Score: 1 - 1 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -127 | Handicap: 0.5 | Away: -118 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 4 min | Over: -154 | Line: 2.5 | Under: +110
-
---- MATCH ENVIRONMENT ---
-No environment data available for this match
-
-
-==================================================
---- Summary Set #19 for 05/01/2025 --- 10:58:56 PM ET
-==================================================
-MATCH #8 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:56 PM ET
-Match ID: 8yomo4h3wkj8q0j
-Competition ID: l965mkyhdgr1ge4
-Competition: Chilean Primera B (Chile)
-Match: D. Concepcion vs Santiago Morning
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +137 | Draw: +200 | Away: +187
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -101 | Handicap: 0.25 | Away: -130
-
-Over/Under:
-Time: 4 min | Over: +105 | Line: 2.25 | Under: -133
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 39%
-Wind: 1.2m/s (2.7 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #18 for 05/01/2025 --- 10:58:55 PM ET
-==================================================
-MATCH #7 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:55 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #17 for 05/01/2025 --- 10:58:54 PM ET
-==================================================
-MATCH #6 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:54 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #16 for 05/01/2025 --- 10:58:54 PM ET
-==================================================
-MATCH #5 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:54 PM ET
-Match ID: 2y8m4zh50lyeql0
-Competition ID: gpxwrxlhnnryk0j
-Competition: Malta Premier League (Malta)
-Match: St. Patrick FC vs Hibernians FC
-Score: 2 - 2 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -116 | Handicap: -0.75 | Away: -119 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 7 min | Over: -137 | Line: 2.5 | Under: -109 (Closest time to minutes 4-6 available: 7)
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #15 for 05/01/2025 --- 10:58:53 PM ET
-==================================================
-MATCH #4 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:53 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #14 for 05/01/2025 --- 10:58:52 PM ET
-==================================================
-MATCH #3 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:52 PM ET
-Match ID: pxwrxlhyp4p3ryk
-Competition ID: d23xmvkhgj0qg8n
-Competition: OFC W U16 (Unknown Country)
-Match: Cook Islands U16 (W) vs American Samoa U16(W)
-Score: 0 - 0 (HT: 0 - 0)
-Status: Abandoned (Status ID: 13)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #13 for 05/01/2025 --- 10:58:51 PM ET
-==================================================
-MATCH #2 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:51 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 2 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-==================================================
---- Summary Set #12 for 05/01/2025 --- 10:58:50 PM ET
-==================================================
-MATCH #1 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:50 PM ET
-Match ID: y0or5jh8xgo4qwz
-Competition ID: gpxwrxlh0nryk0j
-Competition: CNCF CHL (Unknown Country)
-Match: Cruz Azul vs Tigres UANL
-Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +125 | Draw: +187 | Away: +250
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -109 | Handicap: 0.25 | Away: -115
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Windy
-Humidity: 43%
-Wind: 4.1m/s (9.2 mph)
-
-
-==================================================
-Last updated: 05/01/2025 10:58:49 PM ET
-
-===== FOUND 11 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
-==================================================
-
-REFRESHING DATA AT: 10:58:19 PM ET
-
-==================================================
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram Listener] Response: {"ok": true, "result": []}...
-==================================================
-
-Waiting 30 seconds before next update at 10:58:19 PM ET...
-Refreshing in 30 seconds... (Press Ctrl+C to exit)
-==================================================
-END OF LIVE MATCH DATA - 11 MATCHES DISPLAYED
-==================================================
---- Summary Set #11 for 05/01/2025 --- 10:58:19 PM ET
-==================================================
-MATCH #11 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:19 PM ET
-Match ID: zp5rzgh58npdq82
-Competition ID: v2y8m4zhgxoql07
-Competition: Western Australia Women's League (Australia)
-Match: Balcatta (w) vs Murdoch University Melville FC (w)
-Score: 5 - 0 (HT: 3 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -3333 | Draw: +1400 | Away: +5000
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: 3.5 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 3.75 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #10 for 05/01/2025 --- 10:58:17 PM ET
-==================================================
-MATCH #10 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:17 PM ET
-Match ID: y0or5jh8x38lqwz
-Competition ID: kjw2r09hj8rz84o
-Competition: Italian Primavera Cup (Italy)
-Match: Cagliari U19 vs AC Milan U20
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +240 | Draw: +240 | Away: +105
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -139 | Handicap: -0.5 | Away: +107
-
-Over/Under:
-Time: 4 min | Over: -109 | Line: 2.5 | Under: -115
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 48%
-Wind: 2.6m/s (5.8 mph)
-
-
-==================================================
---- Summary Set #9 for 05/01/2025 --- 10:58:15 PM ET
-==================================================
-MATCH #9 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:15 PM ET
-Match ID: 318q66hw9y87qo9
-Competition ID: yl5ergphd2r8k0o
-Competition: Moldova Division 2 (Moldova)
-Match: Saxan Ceadir Lunga vs FC Ursidos Stauceni
-Score: 1 - 1 (HT: 0 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -127 | Handicap: 0.5 | Away: -118 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 4 min | Over: -154 | Line: 2.5 | Under: +110
-
---- MATCH ENVIRONMENT ---
-No environment data available for this match
-
-
-==================================================
---- Summary Set #8 for 05/01/2025 --- 10:58:14 PM ET
-==================================================
-MATCH #8 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:14 PM ET
-Match ID: 8yomo4h3wkj8q0j
-Competition ID: l965mkyhdgr1ge4
-Competition: Chilean Primera B (Chile)
-Match: D. Concepcion vs Santiago Morning
-Score: 3 - 0 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +137 | Draw: +200 | Away: +187
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -101 | Handicap: 0.25 | Away: -130
-
-Over/Under:
-Time: 4 min | Over: +105 | Line: 2.25 | Under: -133
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 39%
-Wind: 1.2m/s (2.7 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #7 for 05/01/2025 --- 10:58:13 PM ET
-==================================================
-MATCH #7 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:13 PM ET
-Match ID: n54qllh7v7pxqvy
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Hubei Super Mr vs Nanjing Tehu Football Club
-Score: 1 - 2 (HT: 0 - 2)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #6 for 05/01/2025 --- 10:58:12 PM ET
-==================================================
-MATCH #6 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:12 PM ET
-Match ID: pxwrxlh5d536ryk
-Competition ID: kjw2r09hwl5rz84
-Competition: Chinese Football Association Member Association Champions League (China)
-Match: Guangdong Wuchuan Youth vs Hainan Shuangyu
-Score: 11 - 0 (HT: 9 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #5 for 05/01/2025 --- 10:58:11 PM ET
-==================================================
-MATCH #5 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:11 PM ET
-Match ID: 2y8m4zh50lyeql0
-Competition ID: gpxwrxlhnnryk0j
-Competition: Malta Premier League (Malta)
-Match: St. Patrick FC vs Hibernians FC
-Score: 2 - 2 (HT: 2 - 0)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-
-SPREAD (Asia Handicap):
-Time: 7 min | Home: -116 | Handicap: -0.75 | Away: -119 (Closest time to minutes 4-6 available: 7)
-
-Over/Under:
-Time: 7 min | Over: -137 | Line: 2.5 | Under: -109 (Closest time to minutes 4-6 available: 7)
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 37%
-Wind: 5.3m/s (11.9 mph)
-
-
-==================================================
---- Summary Set #4 for 05/01/2025 --- 10:58:09 PM ET
-==================================================
-MATCH #4 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:09 PM ET
-Match ID: 2y8m4zh62wnyql0
-Competition ID: vl7oqdehwxr510j
-Competition: Peruvian Liga 1 (Peru)
-Match: FBC Melgar vs Comerciantes Unidos
-Score: 1 - 1 (HT: 1 - 1)
-Status: Finished (Status ID: 8)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: -400 | Draw: +450 | Away: +1100
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -118 | Handicap: 1.75 | Away: -105
-
-Over/Under:
-Time: 4 min | Over: -122 | Line: 3.0 | Under: -103
-
---- MATCH ENVIRONMENT ---
-Weather: Partially cloudy
-Humidity: 63%
-Wind: 1.8m/s (4.0 mph)
-
-
-==================================================
-
-
-No environment data available for this match
-
---- MATCH ENVIRONMENT ---
---- Summary Set #3 for 05/01/2025 --- 10:58:08 PM ET
-==================================================
-MATCH #3 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:08 PM ET
-Match ID: pxwrxlhyp4p3ryk
-Competition ID: d23xmvkhgj0qg8n
-Competition: OFC W U16 (Unknown Country)
-Match: Cook Islands U16 (W) vs American Samoa U16(W)
-Score: 0 - 0 (HT: 0 - 0)
-Status: Abandoned (Status ID: 13)
-
---- MATCH BETTING ODDS ---
-
-==================================================
---- Summary Set #2 for 05/01/2025 --- 10:58:07 PM ET
-==================================================
-MATCH #2 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:07 PM ET
-Match ID: n54qllhn5vojqvy
-Competition ID: 56ypq3nhzpzmd7o
-Competition: Mexico Liga MX Femenil (Mexico)
-Match: Chivas Guadalajara (w) vs Club America (w)
-Score: 2 - 1 (HT: 0 - 1)
-Status: Second half (Status ID: 4)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 5 min | Home: +500 | Draw: +333 | Away: -189
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: +100 | Handicap: -1.0 | Away: -125
-
-Over/Under:
-Time: 4 min | Over: -111 | Line: 2.75 | Under: -111
-
---- MATCH ENVIRONMENT ---
-Weather: Sunny
-Humidity: 18%
-Wind: 5.1m/s (11.4 mph)
-
-
-==================================================
---- Summary Set #1 for 05/01/2025 --- 10:58:05 PM ET
-
-============================================================
-  NEW LOG DATE: 05/01/2025
-============================================================
-
-==================================================
-MATCH #1 OF 11
-==================================================
-
-==================================================
-
------ MATCH SUMMARY -----
-Timestamp: 05/01/2025 10:58:05 PM ET
-Match ID: y0or5jh8xgo4qwz
-Competition ID: gpxwrxlh0nryk0j
-Competition: CNCF CHL (Unknown Country)
-Match: Cruz Azul vs Tigres UANL
-Score: 0 - 0 (HT: 0 - 0)
-Status: Half-time break (Status ID: 3)
-
---- MATCH BETTING ODDS ---
-ML (Money Line):
-Time: 4 min | Home: +125 | Draw: +187 | Away: +250
-
-SPREAD (Asia Handicap):
-Time: 4 min | Home: -109 | Handicap: 0.25 | Away: -115
-
-Over/Under:
-Time: 4 min | Over: -115 | Line: 2.0 | Under: -109
-
---- MATCH ENVIRONMENT ---
-Weather: Windy
-Humidity: 43%
-Wind: 4.1m/s (9.2 mph)
-
-
-==================================================
-Last updated: 05/01/2025 10:58:03 PM ET
-
-===== FOUND 11 LIVE FOOTBALL MATCHES =====
-
-Fetching live matches...
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] Started with token: 77649539... and chat_id: 6128359776
-Successfully sent Telegram alert: 🚀 <b>LIVE.PY STARTED</b>
-
-The live data collection system has been started successfully.
-Main logger is active...
-Acquired process lock. This is the only running instance.
-[PNTS3_START] Filter initialized and registered with event listeners
-
-==================================================
-LOGGER STARTED AT: 05/01/2025 10:58:02 PM ET
-==================================================
-
-
-[Telegram Listener] Polling for updates with params: {'timeout': 30, 'allowed_updates': ['message']}
-[Telegram Listener] No updates in response
-[Telegram

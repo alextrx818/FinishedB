@@ -1,3 +1,37 @@
+"""
+=====================================================================
+IMPORTANT: OUTPUT FORMATTING SYSTEM DOCUMENTATION
+=====================================================================
+
+This file (live.py) produces output that appears in two places:
+1. Terminal - where it's displayed in real-time
+2. main.logger file - where it's stored for later reference
+
+CRITICAL FORMATTING WARNING:
+----------------------------
+DO NOT attempt to modify output formatting by changing print statements 
+in this file. Here's why:
+
+1. FORMATTING RESPONSIBILITY:
+   - ALL formatting is handled by main_logger.py, not this file
+   - This file should only print raw content without formatting concerns
+   - Adding separators or formatting here will cause duplicates
+
+2. HOW THE SYSTEM WORKS:
+   - main_logger.py intercepts all print() calls from this file
+   - It formats both terminal and logger output simultaneously
+   - Any formatting changes must be made in main_logger.py
+
+3. CORRECT APPROACH:
+   - To change output format: modify main_logger.py
+   - To change content: modify the print statements here
+   - Always test both terminal AND logger output after any changes
+
+This intercept-and-format approach allows consistency between outputs
+but is brittle - any changes to print format in this file will likely
+break the logger system in unexpected ways.
+"""
+
 import logger.main_logger
 import logger.log_filters.pnts3_start.pnts3_start
 
@@ -1089,10 +1123,10 @@ def process_live_matches(country_map):
                 humidity_clean = str(humidity).replace("%", "").strip()
                 humidity_text = f"{humidity_clean}%"
             
-            # Print match header with number
-            print(f"{'=' * 50}")
+            # We're now only passing the match number to the logger system
+            # without printing it directly, to avoid duplication
+            # The logger will handle the printing with proper formatting
             print(f"MATCH #{i} OF {len(match_ids)}")
-            print(f"{'=' * 50}")
             
             # Print match summary
             print("\n----- MATCH SUMMARY -----")

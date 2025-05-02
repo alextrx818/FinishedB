@@ -15,7 +15,7 @@ pnts_count = 0
 def get_eastern_time():
     import pytz
     from datetime import datetime
-    return datetime.now(pytz.timezone('US/Eastern'))
+    return datetime.now(pytz.timezone('America/New_York'))
 
 # Format matching the API timestamp format in the logs
 API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p ET"

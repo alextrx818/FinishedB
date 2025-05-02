@@ -1,3 +1,42 @@
+"""
+=====================================================================
+IMPORTANT: TERMINAL OUTPUT AND LOGGER FILE SYSTEMS DOCUMENTATION
+=====================================================================
+
+These two output systems (terminal display and logger file) are inherently 
+separate but intentionally coupled through the code in this file:
+
+1. OUTPUT INDEPENDENCE:
+   - Terminal output: Controlled by Python's built-in print() function
+   - Logger file output: Written to main.logger through file operations
+   - These systems don't naturally stay in sync without explicit code
+
+2. HOW THEY'RE COUPLED:
+   - This file (main_logger.py) intercepts EVERY print() call in the application
+   - It simultaneously formats the output for both terminal AND logger file
+   - Any change to formatting must be done in main_logger.py, NOT in live.py
+
+3. MODIFYING OUTPUT FORMAT:
+   - DO NOT modify print statements in live.py expecting format changes
+   - DO modify the formatting logic in main_logger.py (especially handle_match_header)
+   - Always test both terminal AND logger output after changes
+
+4. COMMON PITFALLS:
+   - Adding separators in live.py will cause duplicates
+   - Changing print formats in live.py won't affect logger output
+   - Editing logger file operations without matching terminal output creates inconsistency
+
+5. BEST PRACTICE:
+   - Keep all formatting logic in main_logger.py
+   - Make live.py print simple content that main_logger.py will intercept and format
+   - Always check both outputs after changes
+
+NOTE: This coupling approach (overriding builtins.print) is not generally
+recommended in production systems, but works for this specific use case.
+A better long-term solution would be a proper logging framework with
+formatters and handlers.
+"""
+
 import os
 import builtins
 import datetime
@@ -45,132 +84,140 @@ original_print("LOG FILE PATH →", LOG_FILE_PATH)
 # Define new_print(*args, **kwargs) that calls original_print(*args, **kwargs)
 # and then prepends the exact same text to main.logger
 def new_print(*args, **kwargs):
-    # Call the original print function
-    original_print(*args, **kwargs)
-    
-    # Get the separator and end values from kwargs, or use defaults
+    # Get the text being printed
     sep = kwargs.get('sep', ' ')
     end = kwargs.get('end', '\n')
-    
-    # Convert all args to strings and join with separator
     text = sep.join(str(arg) for arg in args) + end
     
-    # BEFORE anything else in new_print, insert:
-    global buffering, buffer_lines, last_log_date, daily_summary_count
-    
-    # 1) Detect live.py's MATCH header first (specialized block-start)
-    if not buffering and text.strip().startswith("MATCH #"):
-        # determine current ET date for summary counter
-        current_date_obj = get_eastern_time()
-        current_date_iso = current_date_obj.strftime("%Y-%m-%d")
-        current_date_std = format_date(current_date_obj)
-        current_time = current_date_obj.strftime("%I:%M:%S %p ET")
-        
-        # handle date rollover
-        if current_date_iso != last_log_date:
-            last_log_date = current_date_iso
-            daily_summary_count = 0
-            # prepend a big date banner
-            date_banner = (
-                "\n" + "="*60 + "\n"
-                f"  NEW LOG DATE: {current_date_std}\n"
-                + "="*60 + "\n\n"
-            )
-        else:
-            date_banner = ""
-            
-        # increment your daily counter
-        daily_summary_count += 1
-        summary_banner = f"--- Summary Set #{daily_summary_count} for {current_date_std} --- {current_time}\n"
-        
-        # build block header using live.py's MATCH line
-        block_header = date_banner
-        block_header += "="*50 + "\n"
-        block_header += text                # <-- this is the exact MATCH #x OF y line
-        block_header += "="*50 + "\n\n"
-        
-        # start buffering the rest of the block
-        buffering = True
-        buffer_lines = [summary_banner + block_header]  
+    # Check if this is a MATCH line
+    if text.strip().startswith("MATCH #") and " OF " in text:
+        # This is a match header, we'll handle it specially and suppress normal printing
+        handle_match_header(text)
         return
     
-    # 2) If we're already buffering, capture everything (including equal signs)
+    # For all other lines, call the original print function
+    original_print(*args, **kwargs)
+    
+    # Add to buffer if we're in buffering mode
+    global buffering, buffer_lines
     if buffering:
         buffer_lines.append(text)
-        # the very first blank line after environment signals block end:
+        # the very first blank line after environment signals block end
         if text.strip() == "":
-            chunk = "".join(buffer_lines)
-            try:
-                # Call all registered event listeners with the chunk BEFORE writing to file
-                # Create a temporary buffer to capture output from listeners
-                listener_output_buffer = []
-                
-                # Save the original print function temporarily
-                __temp_print = builtins.print
-                
-                # Define a temporary print function to capture listener output
-                def capture_print(*args, **kwargs):
-                    # Call the original print function for terminal output
-                    original_print(*args, **kwargs)
-                    
-                    # Get the separator and end values from kwargs, or use defaults
-                    sep = kwargs.get('sep', ' ')
-                    end = kwargs.get('end', '\n')
-                    
-                    # Convert all args to strings and join with separator
-                    text = sep.join(str(arg) for arg in args) + end
-                    
-                    # Add to our listener output buffer
-                    listener_output_buffer.append(text)
-                
-                # Replace the print function to capture listener output
-                builtins.print = capture_print
-                
-                # Call all event listeners
-                for listener in event_listeners:
-                    try:
-                        listener(chunk)
-                    except Exception as e:
-                        original_print("Listener error:", e)
-                
-                # Restore the original print function
-                builtins.print = __temp_print
-                
-                # Append any captured listener output to the chunk
-                if listener_output_buffer:
-                    chunk += "".join(listener_output_buffer)
-                
-                # Now write the combined chunk (original + listener output) to the file
-                with open(LOG_FILE_PATH, "r+") as f:
-                    old = f.read()
-                    f.seek(0)
-                    f.write(chunk + old)
-                    f.truncate()
-            except Exception as e:
-                original_print("Logger write error:", e)
-            buffering = False
-            buffer_lines.clear()
-        return
+            handle_buffer_end()
+    else:
+        # FALL BACK to normal per-line prepend for anything outside a match block
+        try:
+            # Open file for read/write
+            if os.path.exists(LOG_FILE_PATH):
+                with open(LOG_FILE_PATH, 'r+') as log_file:
+                    # Read existing contents
+                    existing_content = log_file.read()
+                    # Seek back to start
+                    log_file.seek(0)
+                    # Write new text first, then old content
+                    log_file.write(text + existing_content)
+                    # Truncate the file to remove any potential leftover bytes
+                    log_file.truncate()
+            else:
+                # If file doesn't exist, create it and write the text
+                with open(LOG_FILE_PATH, 'w') as log_file:
+                    log_file.write(text)
+        except Exception as e:
+            original_print("Logger write error:", e)
+
+# Function to handle a match header
+def handle_match_header(text):
+    global buffering, buffer_lines, last_log_date, daily_summary_count
     
-    # FALL BACK to normal per-line prepend for anything outside a match block
+    # Reset date if needed
+    current_date = get_eastern_time().date()
+    current_date_std = format_date(current_date)
+    current_time = get_eastern_time().strftime("%I:%M:%S %p ET")
+        
+    # Handle date transition
+    if last_log_date is None or current_date != last_log_date:
+        last_log_date = current_date
+        daily_summary_count = 0
+        date_banner = f"\n\n{'-' * 50}\nDate: {current_date_std}\n{'-' * 50}\n\n"
+    else:
+        date_banner = ""
+        
+    # Increment counter and create summary banner
+    daily_summary_count += 1
+    summary_banner = f"--- Summary Set #{daily_summary_count} for {current_date_std} --- {current_time}\n"
+    
+    # Build formatted block header exactly as it should appear in both terminal and log
+    formatted_header = date_banner
+    formatted_header += summary_banner
+    formatted_header += "="*50 + "\n"
+    formatted_header += text
+    formatted_header += "="*50 + "\n\n"
+    formatted_header += "="*50 + "\n\n"
+    
+    # Print the formatted header to terminal
+    original_print(formatted_header, end="")
+    
+    # Start buffering for the log file
+    buffering = True
+    buffer_lines = [formatted_header]
+
+# Function to handle the end of a buffer
+def handle_buffer_end():
+    global buffering, buffer_lines
+    chunk = "".join(buffer_lines)
     try:
-        # Open file for read/write
-        if os.path.exists(LOG_FILE_PATH):
-            with open(LOG_FILE_PATH, 'r+') as log_file:
-                # Read existing contents
-                existing_content = log_file.read()
-                # Seek back to start
-                log_file.seek(0)
-                # Write new text first, then old content
-                log_file.write(text + existing_content)
-                # Truncate the file to remove any potential leftover bytes
-                log_file.truncate()
-        else:
-            # If file doesn't exist, create it and write the text
-            with open(LOG_FILE_PATH, 'w') as log_file:
-                log_file.write(text)
+        # Call all registered event listeners with the chunk BEFORE writing to file
+        # Create a temporary buffer to capture output from listeners
+        listener_output_buffer = []
+        
+        # Save the original print function temporarily
+        __temp_print = builtins.print
+        
+        # Define a temporary print function to capture listener output
+        def capture_print(*args, **kwargs):
+            # Call the original print function for terminal output
+            original_print(*args, **kwargs)
+            
+            # Get the separator and end values from kwargs, or use defaults
+            sep = kwargs.get('sep', ' ')
+            end = kwargs.get('end', '\n')
+            
+            # Convert all args to strings and join with separator
+            text = sep.join(str(arg) for arg in args) + end
+            
+            # Add to our listener output buffer
+            listener_output_buffer.append(text)
+        
+        # Replace the print function to capture listener output
+        builtins.print = capture_print
+        
+        # Call all event listeners
+        for listener in event_listeners:
+            try:
+                listener(chunk)
+            except Exception as e:
+                original_print("Listener error:", e)
+        
+        # Restore the original print function
+        builtins.print = __temp_print
+        
+        # Append any captured listener output to the chunk
+        if listener_output_buffer:
+            chunk += "".join(listener_output_buffer)
+        
+        # Now write the combined chunk (original + listener output) to the file
+        with open(LOG_FILE_PATH, "r+") as f:
+            old = f.read()
+            f.seek(0)
+            f.write(chunk + old)
+            f.truncate()
     except Exception as e:
         original_print("Logger write error:", e)
+    
+    # Reset buffering state
+    buffering = False
+    buffer_lines = []
 
 # Assign builtins.print = new_print
 builtins.print = new_print
