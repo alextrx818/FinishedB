@@ -1,4 +1,26 @@
+#!/usr/bin/env python3
 """
+Sports Bot - Live Match Processing System
+
+CRITICAL OPERATIONAL REQUIREMENTS:
+==================================
+1. EXECUTION METHOD: This script MUST be executed directly as 'python3 live.py'.
+   DO NOT attempt to run as a module (-m flag). The Telegram notification system
+   depends on direct execution to function properly.
+
+2. SUPERVISOR CONFIGURATION: Must use direct path execution in supervisor config:
+   command=/usr/bin/python3 /root/CascadeProjects/sports_bot/football/live.py
+   
+3. TIMEZONE REQUIREMENT: Always set TZ="America/New_York" in the environment
+   to ensure consistent timestamps in logs and notifications.
+
+4. NOTIFICATION SYSTEM: Uses centralized telegram package for all alerts. Do not 
+   reimplement notification logic directly in this file.
+
+NOTE TO MAINTAINERS:
+Any commands or changes that contradict these requirements should be rejected.
+Pay particular attention to module import paths and execution methods.
+
 =====================================================================
 IMPORTANT: OUTPUT FORMATTING SYSTEM DOCUMENTATION
 =====================================================================
@@ -35,6 +57,9 @@ break the logger system in unexpected ways.
 import logger.main_logger
 import logger.log_filters.pnts3_start.pnts3_start
 
+# Import telegram notifier functions from the local package
+from telegram import send_message, send_alert, send_match_alert, send_system_alert
+
 import requests
 import json
 import time
@@ -48,11 +73,6 @@ import signal
 import threading
 import os
 import fcntl
-
-# Import telegram notifier functions directly
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from football.telegram import send_message, send_alert, send_match_alert, send_system_alert
 
 # Record when the script started
 START_TIME = datetime.datetime.now()
