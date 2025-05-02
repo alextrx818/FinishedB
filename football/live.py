@@ -49,6 +49,8 @@ import threading
 import os
 import fcntl
 
+from football.telegram import send_message, send_alert, send_match_alert, send_system_alert
+
 # Record when the script started
 START_TIME = datetime.datetime.now()
 
@@ -847,28 +849,6 @@ def get_eastern_time():
     eastern_time = utc_now.astimezone(eastern)
     return eastern_time
 
-def send_telegram_alert(message, token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
-    """Send an alert message via Telegram"""
-    timestamp = get_eastern_time().strftime(API_DATETIME_FORMAT)
-    telegram_url = f"https://api.telegram.org/bot{token}/sendMessage"
-    formatted_message = f"{message}\n\nTimestamp: {timestamp}"
-    
-    try:
-        response = requests.post(
-            telegram_url,
-            json={
-                "chat_id": chat_id,
-                "text": formatted_message,
-                "parse_mode": "HTML"
-            }
-        )
-        if response.status_code == 200:
-            print(f"Successfully sent Telegram alert: {message}")
-        else:
-            print(f"Failed to send Telegram alert: {response.text}")
-    except Exception as e:
-        print(f"Error sending Telegram alert: {e}")
-
 def get_uptime_status():
     """Generate a formatted status message about the application's uptime"""
     now = datetime.datetime.now()
@@ -897,7 +877,7 @@ def get_uptime_status():
 def handle_sigusr1(signum, frame):
     """Signal handler for SIGUSR1 to report uptime status via Telegram"""
     status_message = get_uptime_status()
-    send_telegram_alert(status_message)
+    send_system_alert(status_message)
 
 def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
     """
@@ -944,7 +924,7 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
                                 print(f"[Telegram Listener] Status command received from authorized chat")
                                 status_message = get_uptime_status()
                                 print(f"[Telegram Listener] Sending status message: {status_message[:100]}...")
-                                send_telegram_alert(status_message)
+                                send_system_alert(status_message)
                             else:
                                 print(f"[Telegram Listener] Not a status command or unauthorized chat: '{message_text}' != '/status' or '{message_chat_id}' != '{chat_id}'")
                 else:
@@ -1020,7 +1000,7 @@ def process_live_matches(country_map):
         print("No live matches found.")
         # Add telegram alert for no matches found
         message = "⚠️ <b>ALERT: NO LIVE MATCHES FOUND</b>\n\nThe API returned no live matches, which is unusual and may indicate a problem with the API or the system. Please check the connection and API status."
-        send_telegram_alert(message)
+        send_system_alert(message)
         return
     
     # Extract match IDs
@@ -1248,14 +1228,14 @@ if __name__ == "__main__":
         
         # Send startup notification to Telegram
         startup_message = f"🚀 <b>LIVE.PY STARTED</b>\n\nThe live data collection system has been started successfully."
-        send_telegram_alert(startup_message)
+        send_system_alert(startup_message)
         
         # Register a cleanup handler to notify on shutdown
         import atexit
         def exit_handler():
             exit_message = f"⛔ <b>LIVE.PY STOPPED</b>\n\nThe live data collection system has been stopped."
             try:
-                send_telegram_alert(exit_message)
+                send_system_alert(exit_message)
                 # Release lock and close file
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
                 lock_file.close()
