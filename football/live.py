@@ -49,7 +49,10 @@ import threading
 import os
 import fcntl
 
-from .telegram import send_message, send_alert, send_match_alert, send_system_alert
+# Import telegram notifier functions directly
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from football.telegram import send_message, send_alert, send_match_alert, send_system_alert
 
 # Record when the script started
 START_TIME = datetime.datetime.now()
