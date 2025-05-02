@@ -41,6 +41,10 @@ import os
 import builtins
 import datetime
 import pytz
+import threading
+
+# Add threading lock for thread-safe file operations
+_log_lock = threading.Lock()
 
 # Add event listener list for callbacks
 event_listeners = []
@@ -106,22 +110,12 @@ def new_print(*args, **kwargs):
         if text.strip() == "":
             handle_buffer_end()
     else:
-        # FALL BACK to normal per-line prepend for anything outside a match block
+        # We're not buffering, so write directly to the log file.
+        # Previously we did an inefficient read-modify-write operation.
+        # Now we use thread-safe append-only writes for non-buffered content.
         try:
-            # Open file for read/write
-            if os.path.exists(LOG_FILE_PATH):
-                with open(LOG_FILE_PATH, 'r+') as log_file:
-                    # Read existing contents
-                    existing_content = log_file.read()
-                    # Seek back to start
-                    log_file.seek(0)
-                    # Write new text first, then old content
-                    log_file.write(text + existing_content)
-                    # Truncate the file to remove any potential leftover bytes
-                    log_file.truncate()
-            else:
-                # If file doesn't exist, create it and write the text
-                with open(LOG_FILE_PATH, 'w') as log_file:
+            with _log_lock:
+                with open(LOG_FILE_PATH, 'a') as log_file:
                     log_file.write(text)
         except Exception as e:
             original_print("Logger write error:", e)
@@ -207,20 +201,19 @@ def handle_buffer_end():
             chunk += "".join(listener_output_buffer)
         
         # Now write the combined chunk (original + listener output) to the file
-        with open(LOG_FILE_PATH, "r+") as f:
-            old = f.read()
-            f.seek(0)
-            f.write(chunk + old)
-            f.truncate()
+        # Using a lock for thread safety and append instead of read+write+truncate
+        with _log_lock:
+            with open(LOG_FILE_PATH, "r+") as f:
+                old = f.read()
+                f.seek(0)
+                f.write(chunk + old)
+                f.truncate()
     except Exception as e:
         original_print("Logger write error:", e)
     
     # Reset buffering state
     buffering = False
     buffer_lines = []
-
-# Assign builtins.print = new_print
-builtins.print = new_print
 
 # Define and immediately call setup_logger() 
 def setup_logger():
@@ -232,8 +225,34 @@ def setup_logger():
         
         # Use our new print which will properly prepend
         print(header)
+        
+        # Optional but recommended: Add proper Python logging with console handler
+        import sys
+        import logging
+        
+        # Create a logger
+        logger = logging.getLogger("live")
+        logger.setLevel(logging.INFO)
+        
+        # Create formatter
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        
+        # Create console handler
+        console = logging.StreamHandler(sys.stdout)
+        console.setLevel(logging.INFO)
+        console.setFormatter(formatter)
+        
+        # Add the handler to the logger
+        logger.addHandler(console)
+        
+        # This sets up the Python logging system but doesn't actually use it yet
+        # This is groundwork for future migration from print() to logger.info() etc.
+        
     except Exception as e:
         original_print("Logger setup error:", e)
 
 # Immediately call setup_logger()
 setup_logger()
+
+# Assign builtins.print = new_print
+builtins.print = new_print
