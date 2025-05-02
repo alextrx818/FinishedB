@@ -60,7 +60,9 @@ import logger.log_filters.pnts3_start.pnts3_start
 # Import telegram notifier functions from the local package
 from telegram import send_message, send_alert, send_match_alert, send_system_alert
 
-import requests
+import asyncio
+import aiohttp
+import requests  # Still needed for telegram_listener and other non-async functions
 import json
 import time
 from functools import lru_cache
@@ -77,9 +79,6 @@ import fcntl
 # Record when the script started
 START_TIME = datetime.datetime.now()
 
-# Create a single session for all API calls
-session = requests.Session()
-
 # API credentials
 USER = "thenecpt"
 SECRET = "0c55322e8e196d6ef9066fa4252cf386"
@@ -91,112 +90,62 @@ DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
 CONSOLE_TIME_FORMAT = "%I:%M:%S %p ET"  # For console output only
 API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p ET"  # For APIs and data
 
-def fetch_live_matches():
+async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict):
+    """
+    Helper function to fetch JSON data from an API endpoint
+    """
+    async with session.get(url, params=params, raise_for_status=True) as resp:
+        return await resp.json()
+
+async def fetch_live_matches(session):
     """
     Fetch all live football matches from the API
     """
-    url = "https://api.thesports.com/v1/football/match/detail_live"
-    params = {
-        "user": USER,
-        "secret": SECRET
-    }
-    
-    try:
-        print("Fetching live matches...")
-        response = session.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching live matches: {e}")
-        return None
+    print("Fetching live matches...")
+    return await _fetch_json(session, 
+                             "https://api.thesports.com/v1/football/match/detail_live",
+                             {"user": USER, "secret": SECRET})
 
-def fetch_match_details(match_id):
+async def fetch_match_details(session, match_id):
     """
     Fetch detailed information for a specific match ID
     """
-    url = "https://api.thesports.com/v1/football/match/recent/list"
-    params = {
-        "user": USER,
-        "secret": SECRET,
-        "uuid": match_id
-    }
-    
-    try:
-        response = session.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching details for match {match_id}: {e}")
-        return None
+    return await _fetch_json(session, 
+                             "https://api.thesports.com/v1/football/match/recent/list",
+                             {"user": USER, "secret": SECRET, "uuid": match_id})
 
-@lru_cache(maxsize=None)
-def fetch_team_info(team_id):
+async def fetch_match_odds(session, match_id):
+    """
+    Fetch odds history for a specific match ID
+    """
+    return await _fetch_json(session, 
+                             "https://api.thesports.com/v1/football/odds/history",
+                             {"user": USER, "secret": SECRET, "uuid": match_id})
+
+async def fetch_team_info(session, team_id):
     """
     Fetch team information using the team ID (cached)
     """
-    url = "https://api.thesports.com/v1/football/team/additional/list"
-    params = {
-        "user": USER,
-        "secret": SECRET,
-        "uuid": team_id
-    }
-    
-    try:
-        response = session.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching team info for {team_id}: {e}")
-        return None
+    return await _fetch_json(session, 
+                             "https://api.thesports.com/v1/football/team/additional/list",
+                             {"user": USER, "secret": SECRET, "uuid": team_id})
 
-@lru_cache(maxsize=None)
-def fetch_competition_info(competition_id):
+async def fetch_competition_info(session, competition_id):
     """
     Fetch competition information using the competition ID (cached)
     """
-    url = "https://api.thesports.com/v1/football/competition/additional/list"
-    params = {
-        "user": USER,
-        "secret": SECRET,
-        "uuid": competition_id
-    }
-    
-    try:
-        response = session.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching competition info for {competition_id}: {e}")
-        return None
+    return await _fetch_json(session, 
+                             "https://api.thesports.com/v1/football/competition/additional/list",
+                             {"user": USER, "secret": SECRET, "uuid": competition_id})
 
-def fetch_country_data():
+async def fetch_country_data(session):
     """
     Fetch all country data
     """
-    url = "https://api.thesports.com/v1/football/country/list"
-    params = {
-        "user": USER,
-        "secret": SECRET
-    }
-    
-    try:
-        print("Fetching country data...")
-        response = session.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching country data: {e}")
-        return None
+    print("Fetching country data...")
+    return await _fetch_json(session, 
+                             "https://api.thesports.com/v1/football/country/list",
+                             {"user": USER, "secret": SECRET})
 
 def extract_match_ids(matches_data):
     """
@@ -325,27 +274,6 @@ def meters_per_second_to_mph(mps_str):
         return f"{mph_value:.1f} mph"
     except (ValueError, AttributeError):
         return mps_str  # Return original if conversion fails
-
-def fetch_match_odds(match_id):
-    """
-    Fetch odds history for a specific match ID
-    """
-    url = "https://api.thesports.com/v1/football/odds/history"
-    params = {
-        "user": USER,
-        "secret": SECRET,
-        "uuid": match_id
-    }
-    
-    try:
-        response = session.get(url, params=params)
-        response.raise_for_status()
-        
-        data = response.json()
-        return data
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching odds for match {match_id}: {e}")
-        return None
 
 def decimal_to_american(decimal_odds):
     """
@@ -624,9 +552,6 @@ def get_latest_odds(odds_data, odds_type):
     
     # Otherwise return the latest valid entry
     return valid_entries[-1]
-
-# Now implementing parallelization with ThreadPoolExecutor
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def format_american_odds(odds_value):
     """Format American odds with consistent sign display."""
@@ -964,48 +889,46 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
             # Sleep and continue on error
             time.sleep(10)
 
-def main():
+async def main_async():
     """
-    Main function to fetch live matches and print match details with team names and competition country using parallelization
+    Main async function to fetch live matches and print match details with team names and competition country
     """
     try:
         # Load countries first so we have them available for competition lookup
-        country_data = fetch_country_data()
-        country_map = create_country_id_to_name_map(country_data)
-        
-        # Always run in continuous mode by default
-        continuous_mode = True
-        interval = 30  # Default interval in seconds
-        
-        # Check for command line arguments
-        parser = argparse.ArgumentParser(description='Live Football Match Monitor')
-        parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
-        parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
-        args = parser.parse_args()
-        
-        if args.single:
-            continuous_mode = False
-        if args.interval:
-            interval = args.interval
-        
-        # Run the fetch process in a loop if continuous mode is enabled
-        while True:
-            process_live_matches(country_map)
+        async with aiohttp.ClientSession() as session:
+            country_data = await fetch_country_data(session)
+            country_map = create_country_id_to_name_map(country_data)
             
-            if not continuous_mode:
-                break
+            # Always run in continuous mode by default
+            continuous_mode = True
+            interval = 30  # Default interval in seconds
+            
+            # Check for command line arguments
+            parser = argparse.ArgumentParser(description='Live Football Match Monitor')
+            parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
+            parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
+            args = parser.parse_args()
+            
+            if args.single:
+                continuous_mode = False
+            if args.interval:
+                interval = args.interval
+            
+            # Run the fetch process in a loop if continuous mode is enabled
+            while True:
+                await process_live_matches_async(session, country_map)
                 
-            # Convert current time to Eastern Time (ET)
-            eastern = pytz.timezone('America/New_York')
-            et_time = datetime.datetime.now(eastern)
-            et_time_str = et_time.strftime(CONSOLE_TIME_FORMAT)
-            
-            print(f"\nWaiting {interval} seconds before next update at {et_time_str}...")
-            print(f"{'=' * 50}")
-            time.sleep(interval)
-            print(f"\n{'=' * 50}")
-            print(f"REFRESHING DATA AT: {et_time.strftime(CONSOLE_TIME_FORMAT)}")
-            print(f"{'=' * 50}\n")
+                if not continuous_mode:
+                    break
+                    
+                # Convert current time to Eastern Time (ET)
+                eastern_now = get_eastern_time()
+                print(f"\nWaiting {interval} seconds before next update at {eastern_now.strftime(CONSOLE_TIME_FORMAT)}...")
+                print(f"{'=' * 50}")
+                await asyncio.sleep(interval)
+                print(f"\n{'=' * 50}")
+                print(f"REFRESHING DATA AT: {eastern_now.strftime(CONSOLE_TIME_FORMAT)}")
+                print(f"{'=' * 50}\n")
     
     except KeyboardInterrupt:
         print("\nLive match monitoring stopped by user.")
@@ -1013,12 +936,12 @@ def main():
         print(f"Error in main function: {e}")
         traceback.print_exc()
 
-def process_live_matches(country_map):
+async def process_live_matches_async(session, country_map):
     """
-    Process live matches and display their details
+    Process live matches and display their details using async batch fetching
     """
     # Fetch live matches
-    live_matches_data = fetch_live_matches()
+    live_matches_data = await fetch_live_matches(session)
     if not live_matches_data or "results" not in live_matches_data:
         print("No live matches found.")
         # Add telegram alert for no matches found
@@ -1028,6 +951,30 @@ def process_live_matches(country_map):
     
     # Extract match IDs
     match_ids = extract_match_ids(live_matches_data)
+    
+    # Batch-fetch match details
+    detail_tasks = [fetch_match_details(session, mid) for mid in match_ids]
+    all_details = await asyncio.gather(*detail_tasks, return_exceptions=True)
+    # Build lookup dictionary
+    details_by_id = {mid: detail for mid, detail in zip(match_ids, all_details) 
+                    if not isinstance(detail, Exception)}
+    
+    # Extract team IDs for batch fetching
+    team_ids = {m["home_team_id"] for m in live_matches_data["results"] if "home_team_id" in m} \
+             | {m["away_team_id"] for m in live_matches_data["results"] if "away_team_id" in m}
+    team_tasks = [fetch_team_info(session, tid) for tid in team_ids]
+    team_results = await asyncio.gather(*team_tasks, return_exceptions=True)
+    # Build team cache
+    team_cache = {tid: result for tid, result in zip(team_ids, team_results) 
+                 if not isinstance(result, Exception)}
+    
+    # Extract competition IDs for batch fetching
+    competition_ids = {m["competition_id"] for m in live_matches_data["results"] if "competition_id" in m}
+    competition_tasks = [fetch_competition_info(session, cid) for cid in competition_ids]
+    competition_results = await asyncio.gather(*competition_tasks, return_exceptions=True)
+    # Build competition cache
+    competition_cache = {cid: result for cid, result in zip(competition_ids, competition_results) 
+                        if not isinstance(result, Exception)}
     
     # Print a header with total matches found
     print(f"\n===== FOUND {len(match_ids)} LIVE FOOTBALL MATCHES =====\n")
@@ -1047,8 +994,8 @@ def process_live_matches(country_map):
             if not live_match_data:
                 continue
             
-            # Fetch additional match details from the recent/list endpoint
-            match_details_data = fetch_match_details(match_id)
+            # Get match details from the batch-fetched data
+            match_details_data = details_by_id.get(match_id)
             
             # Get match details from the response
             match_details = None
@@ -1071,9 +1018,10 @@ def process_live_matches(country_map):
             away_team_id = match_data.get("away_team_id", "")
             competition_id = match_data.get("competition_id", "")
             
-            home_team_info = fetch_team_info(home_team_id) if home_team_id else None
-            away_team_info = fetch_team_info(away_team_id) if away_team_id else None
-            competition_info = fetch_competition_info(competition_id) if competition_id else None
+            # Get team and competition info from caches
+            home_team_info = team_cache.get(home_team_id) if home_team_id else None
+            away_team_info = team_cache.get(away_team_id) if away_team_id else None
+            competition_info = competition_cache.get(competition_id) if competition_id else None
             
             home_team_name = extract_team_name(home_team_info) if home_team_info else "Unknown Home Team"
             away_team_name = extract_team_name(away_team_info) if away_team_info else "Unknown Away Team"
@@ -1083,7 +1031,7 @@ def process_live_matches(country_map):
             competition_country = country_map.get(competition_country_id, "Unknown Country")
             
             # Fetch odds data
-            odds_data = fetch_match_odds(match_id)
+            odds_data = await fetch_match_odds(session, match_id)
             
             # Format the match odds
             formatted_odds = format_match_odds(odds_data)
@@ -1274,7 +1222,7 @@ if __name__ == "__main__":
         telegram_thread.daemon = True  # Allow main thread to exit even if this thread is still running
         telegram_thread.start()
         
-        main()
+        asyncio.run(main_async())
         
     except IOError:
         print(f"Failed to acquire process lock. Another instance is already running.")
