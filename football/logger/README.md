@@ -48,6 +48,36 @@ To use the Main Logger system, simply:
 
 There's no need to make any other code changes or call any initialization functions, as the logger is set up automatically when imported.
 
+## Logger Filters
+
+### Logger Filter Standards
+
+All new logger filters **MUST** follow the official standards defined in the unified documentation:
+
+- **[UNIFIED_LOGGER_STANDARDS.md](./UNIFIED_LOGGER_STANDARDS.md)**: The official, mandatory standard for all new logger filters
+
+These standards ensure:
+- Automatic creation of missing logger files
+- Consistent formatting and timezone handling
+- Daily counter rollover
+- Universal prepend rule for entries
+- Single-import bootstrapping in live.py
+
+### Creating a New Logger Filter
+
+When creating a new logger filter:
+
+1. **Review the standards document** thoroughly
+2. Follow the template provided in the standards
+3. Implement the auto-creation of logger files
+4. Use the universal prepend rule
+5. Bootstrap in live.py using a single import:
+   ```python
+   import logger.log_filters.<your_filter_folder>.<your_filter_module>
+   ```
+
+**IMPORTANT**: Never modify live.py beyond adding a single import line for your filter.
+
 ## Important Notes
 
 - The logger is designed to capture exactly what would appear in the console, including all formatting

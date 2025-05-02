@@ -1097,6 +1097,7 @@ def process_live_matches(country_map):
             # Print match summary
             print("\n----- MATCH SUMMARY -----")
             print(f"Timestamp: {get_eastern_time().strftime(API_DATETIME_FORMAT)}")
+            print(f"Match ID: {match_id}")
             print(f"Competition ID: {competition_id}")
             print(f"Competition: {competition_name} ({competition_country})")
             print(f"Match: {home_team_name} vs {away_team_name}")

@@ -3,8 +3,14 @@ import builtins
 import datetime
 import pytz
 
+# Add event listener list for callbacks
+event_listeners = []
+
 # Build LOG_FILE_PATH pointing to main.logger in the same folder
 LOG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main.logger")
+
+# ensure main.logger always exists
+if not os.path.exists(LOG_FILE_PATH): open(LOG_FILE_PATH,'w').close()
 
 # Add module-level variables for buffering and tracking
 buffering = False
@@ -52,7 +58,7 @@ def new_print(*args, **kwargs):
     # BEFORE anything else in new_print, insert:
     global buffering, buffer_lines, last_log_date, daily_summary_count
     
-    # Detect live.py's MATCH header
+    # 1) Detect live.py's MATCH header first (specialized block-start)
     if not buffering and text.strip().startswith("MATCH #"):
         # determine current ET date for summary counter
         current_date_obj = get_eastern_time()
@@ -85,16 +91,56 @@ def new_print(*args, **kwargs):
         
         # start buffering the rest of the block
         buffering = True
-        buffer_lines.clear()
-        buffer_lines.append(summary_banner + block_header)
+        buffer_lines = [summary_banner + block_header]  
         return
     
+    # 2) If we're already buffering, capture everything (including equal signs)
     if buffering:
         buffer_lines.append(text)
         # the very first blank line after environment signals block end:
         if text.strip() == "":
             chunk = "".join(buffer_lines)
             try:
+                # Call all registered event listeners with the chunk BEFORE writing to file
+                # Create a temporary buffer to capture output from listeners
+                listener_output_buffer = []
+                
+                # Save the original print function temporarily
+                __temp_print = builtins.print
+                
+                # Define a temporary print function to capture listener output
+                def capture_print(*args, **kwargs):
+                    # Call the original print function for terminal output
+                    original_print(*args, **kwargs)
+                    
+                    # Get the separator and end values from kwargs, or use defaults
+                    sep = kwargs.get('sep', ' ')
+                    end = kwargs.get('end', '\n')
+                    
+                    # Convert all args to strings and join with separator
+                    text = sep.join(str(arg) for arg in args) + end
+                    
+                    # Add to our listener output buffer
+                    listener_output_buffer.append(text)
+                
+                # Replace the print function to capture listener output
+                builtins.print = capture_print
+                
+                # Call all event listeners
+                for listener in event_listeners:
+                    try:
+                        listener(chunk)
+                    except Exception as e:
+                        original_print("Listener error:", e)
+                
+                # Restore the original print function
+                builtins.print = __temp_print
+                
+                # Append any captured listener output to the chunk
+                if listener_output_buffer:
+                    chunk += "".join(listener_output_buffer)
+                
+                # Now write the combined chunk (original + listener output) to the file
                 with open(LOG_FILE_PATH, "r+") as f:
                     old = f.read()
                     f.seek(0)
