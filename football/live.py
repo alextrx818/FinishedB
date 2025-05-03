@@ -65,7 +65,6 @@ import aiohttp
 import requests  # Still needed for telegram_listener and other non-async functions
 import json
 import time
-from functools import lru_cache
 import sys
 import traceback
 import argparse
@@ -89,6 +88,33 @@ TIME_FORMAT = "%I:%M:%S %p ET"
 DATETIME_FORMAT = f"{DATE_FORMAT} {TIME_FORMAT}"
 CONSOLE_TIME_FORMAT = "%I:%M:%S %p ET"  # For console output only
 API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p ET"  # For APIs and data
+
+def generate_match_summary_text(match_data, formatted_odds):
+    lines = []
+    lines.append(f"MATCH #{match_data['_loop_index']} OF {match_data['_total_matches']}")
+    lines.append("\n----- MATCH SUMMARY -----")
+    lines.append(f"Timestamp: {get_eastern_time().strftime(API_DATETIME_FORMAT)}")
+    lines.append(f"Match ID: {match_data['id']}")
+    lines.append(f"Competition ID: {match_data['competition_id']}")
+    lines.append(f"Competition: {match_data['competition']} ({match_data['country']})")
+    lines.append(f"Match: {match_data['home_team']} vs {match_data['away_team']}")
+    lines.append(f"Score: {match_data['home_score']} - {match_data['away_score']} (HT: {match_data.get('home_ht_score','')} - {match_data.get('away_ht_score','')})")
+    lines.append(f"Status: {match_data['status']} (Status ID: {match_data['status_id']})")
+
+    if formatted_odds:
+        lines.append("\n--- MATCH BETTING ODDS ---")
+        for l in format_odds_display(formatted_odds).split("\n"):
+            lines.append(l)
+
+    lines.append("\n--- MATCH ENVIRONMENT ---")
+    env = []
+    if match_data.get("weather"):     env.append(f"Weather: {match_data['weather']}")
+    if match_data.get("temperature"): env.append(f"Temperature: {match_data['temperature']}")
+    if match_data.get("humidity"):    env.append(f"Humidity: {match_data['humidity']}")
+    if match_data.get("wind"):        env.append(f"Wind: {match_data['wind']}")
+    lines.extend(env or ["No environment data available for this match"])
+
+    return "\n".join(lines)
 
 async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict):
     """
@@ -959,6 +985,15 @@ async def process_live_matches_async(session, country_map):
     details_by_id = {mid: detail for mid, detail in zip(match_ids, all_details) 
                     if not isinstance(detail, Exception)}
     
+    # Batch-fetch match odds for all matches
+    odds_tasks = [fetch_match_odds(session, mid) for mid in match_ids]
+    all_odds   = await asyncio.gather(*odds_tasks, return_exceptions=True)
+    odds_by_id = {
+        mid: odds
+        for mid, odds in zip(match_ids, all_odds)
+        if not isinstance(odds, Exception)
+    }
+    
     # Extract team IDs for batch fetching
     team_ids = {m["home_team_id"] for m in live_matches_data["results"] if "home_team_id" in m} \
              | {m["away_team_id"] for m in live_matches_data["results"] if "away_team_id" in m}
@@ -1031,11 +1066,34 @@ async def process_live_matches_async(session, country_map):
             competition_country = country_map.get(competition_country_id, "Unknown Country")
             
             # Fetch odds data
-            odds_data = await fetch_match_odds(session, match_id)
+            odds_data = odds_by_id.get(match_id)
             
             # Format the match odds
             formatted_odds = format_match_odds(odds_data)
-            
+
+            # ————————————————
+            # Promote key odds fields into match_data
+            # Over/Under
+            ou_list = formatted_odds.get("Over/Under", [])
+            if ou_list:
+                first_ou = ou_list[0]
+                ou_line  = first_ou.get("handicap")
+                ou_over  = first_ou.get("over")
+                ou_under = first_ou.get("under")
+            else:
+                ou_line = ou_over = ou_under = None
+
+            # Money Line (ML)
+            ml_list = formatted_odds.get("ML", [])
+            if ml_list:
+                first_ml = ml_list[0]
+                ml_home = first_ml.get("home_win")
+                ml_draw = first_ml.get("draw")
+                ml_away = first_ml.get("away_win")
+            else:
+                ml_home = ml_draw = ml_away = None
+            # ————————————————
+
             # Get environment data
             environment = match_data.get("environment", {})
             weather = environment.get("weather", "")
@@ -1154,6 +1212,7 @@ async def process_live_matches_async(session, country_map):
             
             # Log match data to file in JSON format for easier parsing by other tools
             match_data = {
+                "id": match_id,
                 "timestamp": get_eastern_time().strftime(API_DATETIME_FORMAT),
                 "competition_id": competition_id,
                 "competition": competition_name,
@@ -1164,11 +1223,33 @@ async def process_live_matches_async(session, country_map):
                 "status": status_name,
                 "status_id": status_id,
                 "odds": formatted_odds,
+
+                # Promoted odds fields:
+                "ou_line":  ou_line,
+                "ou_over":  ou_over,
+                "ou_under": ou_under,
+                "ml_home":  ml_home,
+                "ml_draw":  ml_draw,
+                "ml_away":  ml_away,
+
+                # Loop information for summary generation
+                "_loop_index": i,
+                "_total_matches": len(match_ids),
+                "home_score": home_live_score,
+                "away_score": away_live_score,
+                "home_ht_score": home_ht_score if 'home_ht_score' in locals() else "",
+                "away_ht_score": away_ht_score if 'away_ht_score' in locals() else "",
+
                 "weather": weather_text,
                 "humidity": humidity_text,
                 "wind": wind_mph
             }
             
+            # ————————————————
+            # Emit a one-line JSON blob for alerts, flushing immediately to ensure prompt processing
+            print("__MATCH_JSON__", json.dumps(match_data), flush=True)
+            # ————————————————
+
             print("\n")
         except Exception as e:
             print(f"Error processing match {match_id}: {str(e)}")
