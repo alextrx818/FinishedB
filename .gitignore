@@ -1,0 +1,28 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Log files
+*.logger
+*.logger.*
+football/logger/main.logger
+football/logger/main.logger.*
+football/logger/log_filters/*/pnts3_start.logger
+
+# Process lock files
+*.lock
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE-specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local configuration
+.env
