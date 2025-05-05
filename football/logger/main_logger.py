@@ -43,6 +43,8 @@ import datetime
 import pytz
 import threading
 import sys
+import logging
+from logging.handlers import TimedRotatingFileHandler
 
 # Add threading lock for thread-safe file operations
 _log_lock = threading.Lock()
@@ -97,6 +99,16 @@ def new_print(*args, **kwargs):
     end = kwargs.get('end', '\n')
     text = sep.join(str(arg) for arg in args) + end
     
+    # ————————————————————————————————————————————
+    # 1) If this is your raw JSON payload, dump it only to stdout
+    #    so alerts.py (or your console-based watcher) still sees it,
+    #    but never hand it off to the FileHandler:
+    if args and str(args[0]).startswith("__MATCH_JSON__"):
+        # write to the real terminal
+        original_print(*args, **kwargs)
+        return
+    # ————————————————————————————————————————————
+    
     # Check if this is a MATCH line
     if text.strip().startswith("MATCH #") and " OF " in text:
         # This is a match header, we'll handle it specially and suppress normal printing
@@ -108,23 +120,11 @@ def new_print(*args, **kwargs):
         kwargs['flush'] = True
     original_print(*args, **kwargs)
     
-    # Add to buffer if we're in buffering mode
-    global buffering, buffer_lines
-    if buffering:
-        buffer_lines.append(text)
-        # the very first blank line after environment signals block end
-        if text.strip() == "":
-            handle_buffer_end()
-    else:
-        # We're not buffering, so write directly to the log file.
-        # Previously we did an inefficient read-modify-write operation.
-        # Now we use thread-safe append-only writes for non-buffered content.
-        try:
-            with _log_lock:
-                with open(LOG_FILE_PATH, 'a') as log_file:
-                    log_file.write(text)
-        except Exception as e:
-            original_print("Logger write error:", e)
+    # Log the content using the configured logger system
+    # This will use the TimedRotatingFileHandler for automatic midnight rotation
+    if text.strip():  # Only log non-empty lines
+        logger = logging.getLogger("live")
+        logger.info(text.strip())
 
 # Function to handle a match header
 def handle_match_header(text):
@@ -213,15 +213,12 @@ def handle_buffer_end():
         if listener_output_buffer:
             chunk += "".join(listener_output_buffer)
         
-        # Now write the combined chunk (original + listener output) to the file
-        # Using a lock for thread safety and preserving existing content
-        with _log_lock:
-            with open(LOG_FILE_PATH, "r+") as f:
-                old = f.read()
-                f.seek(0)
-                f.write(chunk + old)
-                f.truncate()
-                
+        # IMPORTANT: Actually write the data to the log file
+        # This is the missing piece - we need to use the logger here
+        if chunk.strip():  # Only log non-empty chunks
+            logger = logging.getLogger("live")
+            logger.info(chunk.strip())
+        
     except Exception as e:
         original_print("Logger write error:", e)
     
@@ -261,28 +258,34 @@ def setup_logger():
         # Use our new print which will properly prepend
         print(header)
         
-        # Optional but recommended: Add proper Python logging with console handler
-        import logging
-        
+        # Set up Python logging with TimedRotatingFileHandler
         # Create a logger
         logger = logging.getLogger("live")
         logger.setLevel(logging.INFO)
         
         # Create formatter
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        formatter = logging.Formatter('%(message)s')
         
-        # Create file handler
-        file_handler = logging.FileHandler(LOG_FILE_PATH)
-        file_handler.setLevel(logging.INFO)
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
+        # Create a rotating file handler that rolls over at midnight, keeps 30 days
+        rotating_handler = TimedRotatingFileHandler(
+            LOG_FILE_PATH,
+            when="midnight",      # roll over at midnight
+            interval=1,           # every 1 day
+            backupCount=30,       # keep 30 days' worth of logs
+            encoding="utf-8",     # use UTF-8 encoding
+            utc=False             # use local time for rollover
+        )
+        rotating_handler.setLevel(logging.INFO)
+        rotating_handler.setFormatter(formatter)
         
-        # This sets up the Python logging system but doesn't actually use it yet
-        # This is groundwork for future migration from print() to logger.info() etc.
+        # append the date suffix (so your files become main.logger.2025-05-04, etc.)
+        rotating_handler.suffix = "%Y-%m-%d"
+        
+        logger.addHandler(rotating_handler)
+        
+        # REMOVED: Console handler causing duplication
+        # The new_print() function already handles terminal output
+        # No need for the logger to also send to console
         
     except Exception as e:
         original_print("Logger setup error:", e)

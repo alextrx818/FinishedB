@@ -994,17 +994,36 @@ async def process_live_matches_async(session, country_map):
         if not isinstance(odds, Exception)
     }
     
-    # Extract team IDs for batch fetching
-    team_ids = {m["home_team_id"] for m in live_matches_data["results"] if "home_team_id" in m} \
-             | {m["away_team_id"] for m in live_matches_data["results"] if "away_team_id" in m}
+    # Extract team and competition IDs from match details data instead of live data
+    team_ids = set()
+    competition_ids = set()
+    
+    # Process match details to extract IDs
+    for match_id, details in details_by_id.items():
+        if "results" not in details or not details["results"]:
+            continue
+            
+        results = details["results"]
+        match_detail = results[0] if isinstance(results, list) and results else results
+        
+        # Extract team and competition IDs
+        home_team_id = match_detail.get("home_team_id", "")
+        away_team_id = match_detail.get("away_team_id", "")
+        competition_id = match_detail.get("competition_id", "")
+        
+        if home_team_id:
+            team_ids.add(home_team_id)
+        if away_team_id:
+            team_ids.add(away_team_id)
+        if competition_id:
+            competition_ids.add(competition_id)
+    
     team_tasks = [fetch_team_info(session, tid) for tid in team_ids]
     team_results = await asyncio.gather(*team_tasks, return_exceptions=True)
     # Build team cache
     team_cache = {tid: result for tid, result in zip(team_ids, team_results) 
                  if not isinstance(result, Exception)}
     
-    # Extract competition IDs for batch fetching
-    competition_ids = {m["competition_id"] for m in live_matches_data["results"] if "competition_id" in m}
     competition_tasks = [fetch_competition_info(session, cid) for cid in competition_ids]
     competition_results = await asyncio.gather(*competition_tasks, return_exceptions=True)
     # Build competition cache
