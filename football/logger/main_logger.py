@@ -31,6 +31,14 @@ separate but intentionally coupled through the code in this file:
    - Make live.py print simple content that main_logger.py will intercept and format
    - Always check both outputs after changes
 
+6. DATABASE CONNECTION:
+   - This file sends log entries to Supabase 'main_logger_logs' table
+   - Each log chunk is captured by an event listener and sent via Supabase client
+   - Uses SUPABASE_KEY environment variable for authentication (fallback to SUPABASE_SERVICE_KEY)
+   - No modification to the logging behavior is required to use this feature
+   - UPDATED CONNECTION: This system now uses the Supabase Python client
+     rather than direct REST API calls for better maintainability
+
 NOTE: This coupling approach (overriding builtins.print) is not generally
 recommended in production systems, but works for this specific use case.
 A better long-term solution would be a proper logging framework with
@@ -45,6 +53,7 @@ import threading
 import sys
 import logging
 from logging.handlers import TimedRotatingFileHandler
+from football.logger.db_api import supabase
 
 # Add threading lock for thread-safe file operations
 _log_lock = threading.Lock()
@@ -91,6 +100,30 @@ original_print = builtins.print
 # Add a one-time debug print to show the LOG_FILE_PATH
 original_print("LOG FILE PATH →", LOG_FILE_PATH)
 
+# Define the database listener function using Supabase client
+def send_to_db(chunk: str):
+    """Send log chunk to Supabase database using Python client"""
+    try:
+        # Insert the log chunk into main_logger_logs table
+        print("▶️ PAYLOAD:", chunk, flush=True)
+        response = supabase \
+            .table("main_logger_logs") \
+            .insert({"content": chunk}) \
+            .execute()
+        if getattr(response, "error", None):
+            print("   ❌ INSERT FAILED:", response.error, flush=True)
+        else:
+            print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
+    except Exception as e:
+        original_print(f"⚠️ Supabase logging error: {str(e)}")
+
+# Register the listener if supabase is available
+if supabase:
+    event_listeners.append(send_to_db)
+    original_print("✓ Supabase logger initialized and listener registered for main_logger_logs table")
+else:
+    original_print("⚠️ Supabase logging not initialized - client not available")
+
 # Define new_print(*args, **kwargs) that calls original_print(*args, **kwargs)
 # and then prepends the exact same text to main.logger
 def new_print(*args, **kwargs):
@@ -108,6 +141,42 @@ def new_print(*args, **kwargs):
         original_print(*args, **kwargs)
         return
     # ————————————————————————————————————————————
+    
+    # UNIVERSAL RULE: Detect start of a block with the 50-character header
+    global buffering, buffer_lines
+    if text.startswith("="*50):
+        buffering = True
+        buffer_lines.clear()
+        buffer_lines.append(text)
+        # Still print to terminal
+        if SMOOTH_SCROLLING:
+            kwargs['flush'] = True
+        original_print(*args, **kwargs)
+        return
+    
+    # UNIVERSAL RULE: Handle buffering logic for the entire block
+    if buffering:
+        buffer_lines.append(text)
+        # Still print to terminal
+        if SMOOTH_SCROLLING:
+            kwargs['flush'] = True
+        original_print(*args, **kwargs)
+        
+        # End of block is indicated by a blank line
+        if text.strip() == "":
+            # Flush the whole chunk in one prepend
+            chunk = "".join(buffer_lines)
+            try:
+                with open(LOG_FILE_PATH, 'r+') as f:
+                    old = f.read()
+                    f.seek(0)
+                    f.write(chunk + old)
+                    f.truncate()
+            except Exception as e:
+                original_print("Logger write error:", e)
+            buffering = False
+            buffer_lines.clear()
+        return
     
     # Check if this is a MATCH line
     if text.strip().startswith("MATCH #") and " OF " in text:

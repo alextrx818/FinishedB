@@ -2,6 +2,25 @@
 """
 Sports Bot - Live Match Processing System
 
+# ========== LEFT OFF - 2025-05-05 ==========
+# BETTING ODDS FORMAT ISSUE:
+# - Currently investigating why betting odds display is incomplete in logs
+# - ML (Money Line) data appears, but SPREAD shows only header with no data
+# - Likely cause: Missing data from API for some odds types
+# - Next steps: Modify format_odds_display() to clearly indicate when data is missing
+# - See /root/CascadeProjects/sports_bot/football/logger/BETTING_ODDS_FORMAT_README.md
+# ============================================
+
+# ========== DATABASE CONNECTIONS ==========
+# This file archives match data JSON to Supabase:
+# - Each match's data is sent to 'archived_json' table via Supabase client
+# - Uses the archive_match_json() function from logger/db_api.py
+# - Configure with SUPABASE_KEY environment variable (fallback to SUPABASE_SERVICE_KEY)
+# - Data is sent after the "__MATCH_JSON__" console output
+# - UPDATED CONNECTION: This system now uses the Supabase Python client
+#   rather than direct REST API calls for better maintainability
+# =========================================
+
 CRITICAL OPERATIONAL REQUIREMENTS:
 ==================================
 1. EXECUTION METHOD: This script MUST be executed directly as 'python3 live.py'.
@@ -56,14 +75,24 @@ break the logger system in unexpected ways.
 
 import logger.main_logger
 import logger.log_filters.pnts3_start.pnts3_start
+import json
+from logger.db_api import supabase
 
 # Import telegram notifier functions from the local package
 from telegram import send_message, send_alert, send_match_alert, send_system_alert
 
+# Import performance monitoring
+try:
+    from tools.monitor_live import start_monitoring_thread
+    # Start performance monitoring in background thread
+    monitor_thread = start_monitoring_thread()
+    print("Performance monitoring started in background")
+except ImportError:
+    print("Performance monitoring module not found - continuing without monitoring")
+
 import asyncio
 import aiohttp
 import requests  # Still needed for telegram_listener and other non-async functions
-import json
 import time
 import sys
 import traceback
@@ -74,6 +103,8 @@ import signal
 import threading
 import os
 import fcntl
+import atexit
+from logger.db_api import supabase  # Import supabase client directly
 
 # Record when the script started
 START_TIME = datetime.datetime.now()
@@ -1266,7 +1297,15 @@ async def process_live_matches_async(session, country_map):
             
             # ————————————————
             # Emit a one-line JSON blob for alerts, flushing immediately to ensure prompt processing
-            print("__MATCH_JSON__", json.dumps(match_data), flush=True)
+            print("▶️ PAYLOAD:", json.dumps(match_data, indent=2), flush=True)
+            response = supabase \
+                .table("archived_json") \
+                .insert({"raw_json": match_data}) \
+                .execute()
+            if getattr(response, "error", None):
+                print("   ❌ INSERT FAILED:", response.error, flush=True)
+            else:
+                print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
             # ————————————————
 
             print("\n")
