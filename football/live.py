@@ -688,8 +688,10 @@ if ASYNC_LOGGING and AIOFILES_AVAILABLE and 'AsyncJsonLogger' in globals():
         print("✓ Using async file I/O for JSON logging")
 else:
     # Fallback to standard logger
-    from logger.main_logger import get_logger
-    json_logger = get_logger('match_json', log_file=json_logger_path)
+    import logging
+    from logger.main_logger import setup_logger
+    setup_logger()
+    json_logger = logging.getLogger('match_json')
 
 # Import telegram notifier functions - this is truly optional
 try:
@@ -1733,6 +1735,11 @@ async def process_live_matches_async(session, country_map):
     """
     Process live matches and display their details using async batch fetching
     """
+    # Initialize fetch cycle metrics and indicators
+    db_status_shown = False  # Track if we've shown DB status for this fetch
+    matches_processed = 0    # Count of matches processed in this cycle
+    match_errors = []       # Collect match errors for consolidated reporting
+    
     # Initialize batch array once at function start if batch inserts are enabled
     if ENABLE_BATCH_INSERTS:
         batch_matches = []
@@ -2103,11 +2110,8 @@ async def process_live_matches_async(session, country_map):
                                     if VERBOSE_OUTPUT:
                                         print(f"⚠️ {error_msg}")
                                     # Use our thread-safe helper function
-                                    send_alert_with_backpressure(
-                                        f"Batch database operation failed for {len(batch_matches)} matches",
-                                        alert_type="warning",
-                                        error_details=error_msg
-                                    )
+                                    # Collect error for consolidated reporting
+                                    match_errors.append(f"Batch database operation failed for {len(batch_matches)} matches: {str(e)}")
                                     Metrics.db_failures += len(batch_matches)
                                     # Fall back to individual inserts on batch failure
                                     if VERBOSE_OUTPUT:
@@ -2158,57 +2162,71 @@ async def process_live_matches_async(session, country_map):
                     if VERBOSE_OUTPUT:
                         print(f"⚠️ {error_msg}")
                         
-                    # Use our thread-safe helper function
-                    send_alert_with_backpressure(
-                        f"Database operation failed for match {match_data.get('id', 'unknown')}",
-                        alert_type="warning",  # Downgraded from error as this is non-critical
-                        error_details=error_msg
-                    )
+                    # Collect error for consolidated reporting
+                    match_errors.append(f"Database operation failed for match {match_data.get('id', 'unknown')}: {str(e)}")
             else:
                 # Fallback if _value not accessible - just try to execute
-                response = supabase \
-                .table("archived_json") \
-                .insert({"raw_json": match_data}) \
-                .execute()
-    except Exception as e:
-        error_msg = f"Failed to insert match data: {str(e)}"
-        if VERBOSE_OUTPUT:
-            print(f"⚠️ {error_msg}")
+                try:
+                    response = supabase \
+                    .table("archived_json") \
+                    .insert({"raw_json": match_data}) \
+                    .execute()
+                except Exception as e:
+                    error_msg = f"Failed to insert match data: {str(e)}"
+                    if VERBOSE_OUTPUT:
+                        print(f"⚠️ {error_msg}")
 
-        # Use our thread-safe helper function
-        send_alert_with_backpressure(
-            f"Database operation failed for match {match_data.get('id', 'unknown')}",
-            alert_type="warning",  # Downgraded from error as this is non-critical
-            error_details=error_msg
-        )
-        # Track DB metrics
-        Metrics.db_failures += 1
+                    # Collect error for consolidated reporting
+                    match_errors.append(f"Database operation failed for match {match_data.get('id', 'unknown')}: {str(e)}")
+                    # Track DB metrics
+                    Metrics.db_failures += 1
+                    response = None
     
-    # Check response status after all database operations
-    if getattr(response, "error", None):
-        print("   ❌ INSERT FAILED:", response.error, flush=True)
-    elif response and hasattr(response, 'data') and response.data:
-        print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
-    else:
-        print("   ✅ Insert successful, but no response data available", flush=True)
+                # Update the match counter but don't show DB status per match
+                matches_processed += 1
                 
                 print("\n")
-            except Exception as e:
-                print(f"Error processing match {match_id}: {str(e)}")
-                traceback.print_exc()
-                continue
+        except Exception as e:
+            print(f"Error processing match {match_id}: {str(e)}")
+            traceback.print_exc()
+            # Collect error for consolidated reporting
+            match_errors.append(f"Error processing match {match_id}: {str(e)}")
+            continue
     
-    # Print a footer
+    # Print a footer with database status information
     print(f"{'=' * 50}")
     print(f"END OF LIVE MATCH DATA - {len(match_ids)} MATCHES DISPLAYED")
+    if matches_processed > 0:
+        # Show consolidated database status once per fetch cycle
+        if SUPABASE_AVAILABLE:
+            print(f"DATABASE STATUS: Connected - Processed {matches_processed} match records")
+            print(f"  - Success: {Metrics.db_successes} | Failures: {Metrics.db_failures} | Skipped: {Metrics.db_skipped}")
+        else:
+            print(f"DATABASE STATUS: ⚠️ DISCONNECTED - {matches_processed} match records NOT archived")
+            print(f"  - Supabase connection unavailable - check API key and connection")
     print(f"{'=' * 50}")
     print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
     
-    # Print a footer
-    print(f"{'=' * 50}")
-    print(f"END OF LIVE MATCH DATA - {len(match_ids)} MATCHES DISPLAYED")
-    print(f"{'=' * 50}")
-    print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
+    # Send consolidated error alert if there were any errors
+    if match_errors and TELEGRAM_AVAILABLE:
+        consolidated_msg = f"⚠️ <b>MATCH PROCESSING ISSUES</b>\n\n"
+        consolidated_msg += f"The following {len(match_errors)} issues occurred during match processing:\n\n"
+        
+        # Add numbered list of errors (limited to first 10 if there are many)
+        show_count = min(len(match_errors), 10)
+        for i, error in enumerate(match_errors[:show_count], 1):
+            consolidated_msg += f"{i}. {error}\n"
+            
+        # Add indication if more errors were truncated
+        if len(match_errors) > show_count:
+            consolidated_msg += f"\n...and {len(match_errors) - show_count} more issues."
+            
+        # Send the consolidated alert
+        send_alert_with_backpressure(
+            consolidated_msg,
+            alert_type="warning",
+            error_details=None
+        )
 
 # Integration with automated testing
 def run_smoke_test() -> bool:
