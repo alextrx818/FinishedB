@@ -48,3 +48,55 @@ python3 live.py
 - `alerts.py`: Telegram notification system
 - `logger/main_logger.py`: Customized logging system
 - `logger/UNIFIED_LOGGER_STANDARDS.md`: Logging standards documentation
+
+## Change Documentation Requirements
+
+**CRITICAL**: Any changes to this system MUST include detailed documentation of:
+
+1. Exact lines added, modified, and deleted (line-by-line changes)
+2. Clear rationale explaining why each change was necessary
+3. Assessment of potential system impacts
+4. Simple natural language summary of changes
+
+This documentation must accompany ALL changes, no matter how minor, especially for core files:
+- `live.py` - Foundation of the system, requires extreme caution when modifying
+- `logger/main_logger.py` - Critical to logging functionality
+- Any supporting files these components depend on
+
+When documenting changes, use the following format:
+
+```markdown
+## [File Name] Changes
+
+### New Lines Added (Not Replacements)
+```python
+# Added code
+```
+
+### Lines Modified (Changed Functionality)
+Before → After
+```python
+# Before
+# After
+```
+
+### Lines Replaced (Deleted and Added as Replacements)
+DELETED → REPLACEMENT
+```python
+# Deleted code
+# Replacement code
+```
+
+### Lines Deleted Without Replacement
+```python
+# Deleted code
+```
+
+### Rationale
+[Explanation of why changes were made]
+
+### Potential Impact
+[How these changes may affect the system]
+```
+
+Failure to document changes properly can lead to system instability and make future maintenance impossible.

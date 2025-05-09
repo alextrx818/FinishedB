@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
 """
+# EDIT REPORT - 2025-05-09
+# Impact of Resilience Enhancements on Telegram Alerts
+#
+# Changes impacting this functionality:
+# 1. Normalized alert severity levels across the system:
+#    - CRITICAL: Only unrecoverable startup/import failures
+#    - ERROR: Thread and asyncio task exceptions
+#    - WARNING: Non-critical component failures (e.g., Supabase connection)
+#    - INFO: Expected operational messages
+#
+# 2. All calls to send_system_alert() now include explicit alert_type parameter
+# 3. Enhanced error message content for critical failures
+# 4. Combined failure test verifies that alerts are sent for all error types
+#
+# See EDIT_REPORT_TEST.md for complete details.
+#
+
 Centralized Telegram Notification System for Football Monitor
 
 This module serves as the single point of contact for all Telegram communications,

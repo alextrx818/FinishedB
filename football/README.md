@@ -168,3 +168,55 @@ For full documentation of the Main Logger system, see `logger/README.md`.
 4. Never run multiple instances of live.py manually - the process lock will prevent this
 5. If you encounter "Another instance is already running" message and are sure no other instance exists, delete the lock file at `/root/CascadeProjects/sports_bot/football/live.lock`
 6. The 3start alert system depends on live.py and the main logging system to function properly
+
+## Change Documentation Requirements
+
+**CRITICAL**: Any changes to this system MUST include detailed documentation of:
+
+1. Exact lines added, modified, and deleted (line-by-line changes)
+2. Clear rationale explaining why each change was necessary
+3. Assessment of potential system impacts
+4. Simple natural language summary of changes
+
+This documentation must accompany ALL changes, no matter how minor, especially for core files:
+- `live.py` - Foundation of the system, requires extreme caution when modifying
+- `logger/main_logger.py` - Critical to logging functionality
+- Any supporting files these components depend on
+
+When documenting changes, use the following format:
+
+```markdown
+## [File Name] Changes
+
+### New Lines Added (Not Replacements)
+```python
+# Added code
+```
+
+### Lines Modified (Changed Functionality)
+Before → After
+```python
+# Before
+# After
+```
+
+### Lines Replaced (Deleted and Added as Replacements)
+DELETED → REPLACEMENT
+```python
+# Deleted code
+# Replacement code
+```
+
+### Lines Deleted Without Replacement
+```python
+# Deleted code
+```
+
+### Rationale
+[Explanation of why changes were made]
+
+### Potential Impact
+[How these changes may affect the system]
+```
+
+Failure to document changes properly can lead to system instability and make future maintenance impossible.

@@ -1,0 +1,2026 @@
+[05/06/2025 11:59:40 PM ET] {
+  "id": "318q66hw5jv3qo9",
+  "timestamp": "05/06/2025 11:59:40 PM ET",
+  "competition_id": "56ypq3nhzogmd7o",
+  "competition": "Portuguese Champions Nacional Juniores A 2",
+  "country": "Portugal",
+  "home_team": "Vitoria SC Guimaraes U19",
+  "away_team": "Tondela U19",
+  "score": "1 - 2",
+  "status": "Finished",
+  "status_id": 8,
+  "odds": {
+    "SPREAD": [
+      {
+        "time_of_match": "pre-match",
+        "home_win": -333,
+        "handicap": 0.0,
+        "away_win": 245
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -122,
+        "handicap": 0.75,
+        "away_win": -103
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -103,
+        "handicap": -0.75,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -109,
+        "handicap": -0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": -0.25,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -119,
+        "handicap": 0.75,
+        "away_win": -103
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -118,
+        "handicap": 0.75,
+        "away_win": -104
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -119,
+        "handicap": 0.75,
+        "away_win": -103
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -101,
+        "handicap": -0.75,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -112,
+        "handicap": -0.5,
+        "away_win": -112
+      }
+    ],
+    "ML": [
+      {
+        "time_of_match": "pre-match",
+        "home_win": 15000,
+        "draw": 2200,
+        "away_win": -10000
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -164,
+        "draw": 300,
+        "away_win": 333
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -164,
+        "draw": 290,
+        "away_win": 320
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 320,
+        "draw": 290,
+        "away_win": -164
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 240,
+        "draw": 270,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 200,
+        "draw": 260,
+        "away_win": 100
+      }
+    ],
+    "Over/Under": [
+      {
+        "time_of_match": "pre-match",
+        "over": 900,
+        "handicap": 3.5,
+        "under": -1667
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -109,
+        "handicap": 2.75,
+        "under": -115
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -111,
+        "handicap": 2.75,
+        "under": -111
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -116,
+        "handicap": 2.75,
+        "under": -128
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -119,
+        "handicap": 2.75,
+        "under": -125
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -122,
+        "handicap": 2.75,
+        "under": -128
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -143,
+        "handicap": 2.5,
+        "under": 105
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -143,
+        "handicap": 2.5,
+        "under": 100
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -106,
+        "handicap": 2.75,
+        "under": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -108,
+        "handicap": 2.75,
+        "under": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": -110,
+        "handicap": 2.75,
+        "under": -118
+      }
+    ]
+  },
+  "ou_line": 3.5,
+  "ou_over": 900,
+  "ou_under": -1667,
+  "ml_home": 15000,
+  "ml_draw": 2200,
+  "ml_away": -10000,
+  "_loop_index": 12,
+  "_total_matches": 12,
+  "home_score": 1,
+  "away_score": 2,
+  "home_ht_score": 0,
+  "away_ht_score": 1,
+  "weather": "Foggy",
+  "humidity": "91%",
+  "wind": "3.7m/s (8.3 mph)"
+}
+2025-05-07 03:59:40,747 {
+  "id": "ednm9wh71w75ryo",
+  "timestamp": "05/06/2025 11:59:40 PM ET",
+  "competition_id": "v2y8m4zhe6ql074",
+  "competition": "CONMEBOL Copa Libertadores",
+  "country": "Unknown Country",
+  "home_team": "Fortaleza",
+  "away_team": "Colo Colo",
+  "score": "4 - 0",
+  "status": "Finished",
+  "status_id": 8,
+  "odds": {
+    "SPREAD": [
+      {
+        "time_of_match": "3",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -128
+      },
+      {
+        "time_of_match": "3",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -119
+      },
+      {
+        "time_of_match": "3",
+        "home_win": 102,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "4",
+        "home_win": 106,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "4",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "4",
+        "home_win": 107,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "4",
+        "home_win": 106,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "4",
+        "home_win": 107,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "4",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "4",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "5",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -119
+      },
+      {
+        "time_of_match": "5",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -119
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 104,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 104,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "5",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -109,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 102,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 102,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 105,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 104,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 109,
+        "handicap": 0.5,
+        "away_win": -123
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 107,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 106,
+        "handicap": 0.5,
+        "away_win": -119
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": 114
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "6",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "7",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -119
+      },
+      {
+        "time_of_match": "7",
+        "home_win": 102,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "8",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "9",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "9",
+        "home_win": -106,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "9",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "11",
+        "home_win": -110,
+        "handicap": 0.5,
+        "away_win": -108
+      },
+      {
+        "time_of_match": "12",
+        "home_win": -111,
+        "handicap": 0.5,
+        "away_win": -106
+      },
+      {
+        "time_of_match": "13",
+        "home_win": -114,
+        "handicap": 0.5,
+        "away_win": -104
+      },
+      {
+        "time_of_match": "13",
+        "home_win": -115,
+        "handicap": 0.5,
+        "away_win": -103
+      },
+      {
+        "time_of_match": "13",
+        "home_win": -116,
+        "handicap": 0.5,
+        "away_win": -102
+      },
+      {
+        "time_of_match": "13",
+        "home_win": -112,
+        "handicap": 0.5,
+        "away_win": -105
+      },
+      {
+        "time_of_match": "14",
+        "home_win": -111,
+        "handicap": 0.5,
+        "away_win": -106
+      },
+      {
+        "time_of_match": "14",
+        "home_win": -112,
+        "handicap": 0.5,
+        "away_win": -105
+      },
+      {
+        "time_of_match": "15",
+        "home_win": -106,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "16",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "16",
+        "home_win": -102,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "17",
+        "home_win": 106,
+        "handicap": 0.5,
+        "away_win": -128
+      },
+      {
+        "time_of_match": "17",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -119
+      },
+      {
+        "time_of_match": "18",
+        "home_win": -130,
+        "handicap": 0.25,
+        "away_win": 107
+      },
+      {
+        "time_of_match": "18",
+        "home_win": 108,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "19",
+        "home_win": -132,
+        "handicap": 0.25,
+        "away_win": 108
+      },
+      {
+        "time_of_match": "19",
+        "home_win": 108,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "19",
+        "home_win": -133,
+        "handicap": 0.25,
+        "away_win": 109
+      },
+      {
+        "time_of_match": "20",
+        "home_win": 108,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "20",
+        "home_win": 107,
+        "handicap": 0.5,
+        "away_win": -130
+      },
+      {
+        "time_of_match": "21",
+        "home_win": 109,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "22",
+        "home_win": -132,
+        "handicap": 0.25,
+        "away_win": 108
+      },
+      {
+        "time_of_match": "24",
+        "home_win": -130,
+        "handicap": 0.25,
+        "away_win": 107
+      },
+      {
+        "time_of_match": "25",
+        "home_win": -127,
+        "handicap": 0.25,
+        "away_win": 105
+      },
+      {
+        "time_of_match": "27",
+        "home_win": -104,
+        "handicap": 0.25,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "28",
+        "home_win": 106,
+        "handicap": 0.25,
+        "away_win": -128
+      },
+      {
+        "time_of_match": "29",
+        "home_win": 103,
+        "handicap": 0.25,
+        "away_win": -123
+      },
+      {
+        "time_of_match": "29",
+        "home_win": 105,
+        "handicap": 0.25,
+        "away_win": -127
+      },
+      {
+        "time_of_match": "29",
+        "home_win": 103,
+        "handicap": 0.25,
+        "away_win": -123
+      },
+      {
+        "time_of_match": "30",
+        "home_win": 107,
+        "handicap": 0.25,
+        "away_win": -130
+      },
+      {
+        "time_of_match": "30",
+        "home_win": 104,
+        "handicap": 0.25,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "31",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "31",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "31",
+        "home_win": 112,
+        "handicap": 0.25,
+        "away_win": -137
+      },
+      {
+        "time_of_match": "32",
+        "home_win": -133,
+        "handicap": 0.0,
+        "away_win": 109
+      },
+      {
+        "time_of_match": "33",
+        "home_win": 108,
+        "handicap": 0.25,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "34",
+        "home_win": 112,
+        "handicap": 0.25,
+        "away_win": -137
+      },
+      {
+        "time_of_match": "34",
+        "home_win": 111,
+        "handicap": 0.25,
+        "away_win": -135
+      },
+      {
+        "time_of_match": "34",
+        "home_win": 112,
+        "handicap": 0.25,
+        "away_win": -137
+      },
+      {
+        "time_of_match": "34",
+        "home_win": 111,
+        "handicap": 0.25,
+        "away_win": -135
+      },
+      {
+        "time_of_match": "34",
+        "home_win": 105,
+        "handicap": 0.25,
+        "away_win": -127
+      },
+      {
+        "time_of_match": "35",
+        "home_win": -147,
+        "handicap": 0.0,
+        "away_win": 119
+      },
+      {
+        "time_of_match": "35",
+        "home_win": 113,
+        "handicap": 0.25,
+        "away_win": -139
+      },
+      {
+        "time_of_match": "36",
+        "home_win": 119,
+        "handicap": 0.25,
+        "away_win": -147
+      },
+      {
+        "time_of_match": "37",
+        "home_win": -137,
+        "handicap": 0.0,
+        "away_win": 112
+      },
+      {
+        "time_of_match": "37",
+        "home_win": 119,
+        "handicap": 0.25,
+        "away_win": -147
+      },
+      {
+        "time_of_match": "37",
+        "home_win": 117,
+        "handicap": 0.25,
+        "away_win": -145
+      },
+      {
+        "time_of_match": "38",
+        "home_win": -135,
+        "handicap": 0.0,
+        "away_win": 111
+      },
+      {
+        "time_of_match": "41",
+        "home_win": -132,
+        "handicap": 0.0,
+        "away_win": 108
+      },
+      {
+        "time_of_match": "41",
+        "home_win": -137,
+        "handicap": 0.0,
+        "away_win": 112
+      },
+      {
+        "time_of_match": "42",
+        "home_win": 116,
+        "handicap": 0.25,
+        "away_win": -143
+      },
+      {
+        "time_of_match": "42",
+        "home_win": -143,
+        "handicap": 0.0,
+        "away_win": 116
+      },
+      {
+        "time_of_match": "43",
+        "home_win": -145,
+        "handicap": 0.0,
+        "away_win": 117
+      },
+      {
+        "time_of_match": "43",
+        "home_win": 117,
+        "handicap": 0.25,
+        "away_win": -145
+      },
+      {
+        "time_of_match": "44",
+        "home_win": -141,
+        "handicap": 0.0,
+        "away_win": 114
+      },
+      {
+        "time_of_match": "45",
+        "home_win": -139,
+        "handicap": 0.0,
+        "away_win": 113
+      },
+      {
+        "time_of_match": "45",
+        "home_win": -143,
+        "handicap": 0.0,
+        "away_win": 116
+      },
+      {
+        "time_of_match": "45",
+        "home_win": 119,
+        "handicap": 0.25,
+        "away_win": -147
+      },
+      {
+        "time_of_match": "45",
+        "home_win": 117,
+        "handicap": 0.25,
+        "away_win": -145
+      },
+      {
+        "time_of_match": "49",
+        "home_win": -132,
+        "handicap": 0.0,
+        "away_win": 108
+      },
+      {
+        "time_of_match": "50",
+        "home_win": -135,
+        "handicap": 0.0,
+        "away_win": 111
+      },
+      {
+        "time_of_match": "50",
+        "home_win": -139,
+        "handicap": 0.0,
+        "away_win": 113
+      },
+      {
+        "time_of_match": "52",
+        "home_win": -128,
+        "handicap": 0.0,
+        "away_win": 106
+      },
+      {
+        "time_of_match": "52",
+        "home_win": -132,
+        "handicap": 0.0,
+        "away_win": 108
+      },
+      {
+        "time_of_match": "53",
+        "home_win": -127,
+        "handicap": 0.0,
+        "away_win": 105
+      },
+      {
+        "time_of_match": "55",
+        "home_win": -125,
+        "handicap": 0.0,
+        "away_win": 104
+      },
+      {
+        "time_of_match": "57",
+        "home_win": -130,
+        "handicap": 0.0,
+        "away_win": 107
+      },
+      {
+        "time_of_match": "57",
+        "home_win": -128,
+        "handicap": 0.0,
+        "away_win": 106
+      },
+      {
+        "time_of_match": "61",
+        "home_win": -127,
+        "handicap": 0.0,
+        "away_win": 105
+      },
+      {
+        "time_of_match": "61",
+        "home_win": -125,
+        "handicap": 0.0,
+        "away_win": 104
+      },
+      {
+        "time_of_match": "63",
+        "home_win": -122,
+        "handicap": 0.0,
+        "away_win": 102
+      },
+      {
+        "time_of_match": "65",
+        "home_win": -120,
+        "handicap": 0.0,
+        "away_win": 101
+      },
+      {
+        "time_of_match": "66",
+        "home_win": -115,
+        "handicap": 0.0,
+        "away_win": -103
+      },
+      {
+        "time_of_match": "67",
+        "home_win": -114,
+        "handicap": 0.0,
+        "away_win": -104
+      },
+      {
+        "time_of_match": "69",
+        "home_win": -112,
+        "handicap": 0.0,
+        "away_win": -105
+      },
+      {
+        "time_of_match": "70",
+        "home_win": -118,
+        "handicap": 0.0,
+        "away_win": -101
+      },
+      {
+        "time_of_match": "71",
+        "home_win": -111,
+        "handicap": 0.0,
+        "away_win": -106
+      },
+      {
+        "time_of_match": "73",
+        "home_win": -112,
+        "handicap": 0.0,
+        "away_win": -105
+      },
+      {
+        "time_of_match": "75",
+        "home_win": -118,
+        "handicap": 0.0,
+        "away_win": -101
+      },
+      {
+        "time_of_match": "76",
+        "home_win": -112,
+        "handicap": 0.0,
+        "away_win": -105
+      },
+      {
+        "time_of_match": "76",
+        "home_win": -119,
+        "handicap": 0.0,
+        "away_win": 100
+      },
+      {
+        "time_of_match": "78",
+        "home_win": -115,
+        "handicap": 0.0,
+        "away_win": -103
+      },
+      {
+        "time_of_match": "78",
+        "home_win": -114,
+        "handicap": 0.0,
+        "away_win": -104
+      },
+      {
+        "time_of_match": "85",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "86",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "86",
+        "home_win": -106,
+        "handicap": 0.0,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "88",
+        "home_win": -118,
+        "handicap": 0.0,
+        "away_win": -101
+      },
+      {
+        "time_of_match": "88",
+        "home_win": -114,
+        "handicap": 0.0,
+        "away_win": -104
+      },
+      {
+        "time_of_match": "88",
+        "home_win": -109,
+        "handicap": 0.0,
+        "away_win": -109
+      },
+      {
+        "time_of_match": "89",
+        "home_win": -125,
+        "handicap": 0.0,
+        "away_win": 104
+      },
+      {
+        "time_of_match": "89",
+        "home_win": -123,
+        "handicap": 0.0,
+        "away_win": 103
+      },
+      {
+        "time_of_match": "89",
+        "home_win": -116,
+        "handicap": 0.0,
+        "away_win": -102
+      },
+      {
+        "time_of_match": "92",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -110,
+        "handicap": 0.5,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -110,
+        "handicap": 0.5,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -110,
+        "handicap": 0.5,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -128
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -106,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -123
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -141
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -132
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -130
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -130
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -130
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -135,
+        "handicap": 0.25,
+        "away_win": 104
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 100,
+        "handicap": 0.5,
+        "away_win": -128
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -118,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -133
+      },
+      {
+        "time_of_match": "midfield",
+        "home_win": -130,
+        "handicap": 0.0,
+        "away_win": 107
+      },
+      {
+        "time_of_match": "45+",
+        "home_win": -135,
+        "handicap": 0.0,
+        "away_win": 111
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 101,
+        "handicap": 0.5,
+        "away_win": -120
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 102,
+        "handicap": 0.5,
+        "away_win": -122
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -101,
+        "handicap": 0.5,
+        "away_win": -118
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -102,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 106,
+        "handicap": 0.5,
+        "away_win": -128
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 103,
+        "handicap": 0.5,
+        "away_win": -123
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": 104,
+        "handicap": 0.5,
+        "away_win": -125
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -102,
+        "handicap": 0.5,
+        "away_win": -116
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -106,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -103,
+        "handicap": 0.5,
+        "away_win": -115
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -104,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -109,
+        "handicap": 0.5,
+        "away_win": -109
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -110,
+        "handicap": 0.5,
+        "away_win": -108
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -106,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -111,
+        "handicap": 0.5,
+        "away_win": -106
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -112,
+        "handicap": 0.5,
+        "away_win": -105
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -109,
+        "handicap": 0.5,
+        "away_win": -109
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -105,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -111,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -110,
+        "handicap": 0.5,
+        "away_win": -111
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -109,
+        "handicap": 0.5,
+        "away_win": -112
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -111,
+        "handicap": 0.5,
+        "away_win": -110
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -108,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -109,
+        "handicap": 0.5,
+        "away_win": -114
+      },
+      {
+        "time_of_match": "pre-match",
+        "home_win": -101,
+        "handicap": 0.5,
+        "away_win": -123
+      }
+    ],
+    "ML": [
+      {
+        "time_of_match": "4",
+        "home_win": -105,
+        "draw": 210,
+        "away_win": 333
+      },
+      {
+        "time_of_match": "5",
+        "home_win": -105,
+        "draw": 200,
+        "away_win": 350
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "draw": 210,
+        "away_win": 350
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -111,
+        "draw": 210,
+        "away_win": 350
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "draw": 210,
+        "away_win": 350
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "draw": 200,
+        "away_win": 350
+      },
+      {
+        "time_of_match": "6",
+        "home_win": -105,
+        "draw": 210,
+        "away_win": 350
+      }
+    ],
+    "Over/Under": [
+      {
+        "time_of_match": "3",
+        "over": 145,
+        "handicap": 2.5,
+        "under": -200
+      },
+      {
+        "time_of_match": "4",
+        "over": 100,
+        "handicap": 2.0,
+        "under": -125
+      },
+      {
+        "time_of_match": "4",
+        "over": 106,
+        "handicap": 2.0,
+        "under": -125
+      },
+      {
+        "time_of_match": "4",
+        "over": 105,
+        "handicap": 2.0,
+        "under": -123
+      },
+      {
+        "time_of_match": "4",
+        "over": -104,
+        "handicap": 2.0,
+        "under": -122
+      },
+      {
+        "time_of_match": "4",
+        "over": -200,
+        "handicap": 1.5,
+        "under": 130
+      },
+      {
+        "time_of_match": "4",
+        "over": 103,
+        "handicap": 2.0,
+        "under": -118
+      },
+      {
+        "time_of_match": "4",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -116
+      },
+      {
+        "time_of_match": "4",
+        "over": -111,
+        "handicap": 2.0,
+        "under": -133
+      },
+      {
+        "time_of_match": "4",
+        "over": -125,
+        "handicap": 1.75,
+        "under": 109
+      },
+      {
+        "time_of_match": "4",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -127
+      },
+      {
+        "time_of_match": "4",
+        "over": 103,
+        "handicap": 2.0,
+        "under": -128
+      },
+      {
+        "time_of_match": "4",
+        "over": -102,
+        "handicap": 2.0,
+        "under": -119
+      },
+      {
+        "time_of_match": "4",
+        "over": -103,
+        "handicap": 2.0,
+        "under": -118
+      },
+      {
+        "time_of_match": "4",
+        "over": 108,
+        "handicap": 2.0,
+        "under": -125
+      },
+      {
+        "time_of_match": "4",
+        "over": 107,
+        "handicap": 2.0,
+        "under": -127
+      },
+      {
+        "time_of_match": "4",
+        "over": -104,
+        "handicap": 2.0,
+        "under": -122
+      },
+      {
+        "time_of_match": "4",
+        "over": 107,
+        "handicap": 2.0,
+        "under": -123
+      },
+      {
+        "time_of_match": "4",
+        "over": 105,
+        "handicap": 2.0,
+        "under": -125
+      },
+      {
+        "time_of_match": "4",
+        "over": 104,
+        "handicap": 2.0,
+        "under": -123
+      },
+      {
+        "time_of_match": "4",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -120
+      },
+      {
+        "time_of_match": "5",
+        "over": -130,
+        "handicap": 1.75,
+        "under": 102
+      },
+      {
+        "time_of_match": "5",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -130
+      },
+      {
+        "time_of_match": "5",
+        "over": 108,
+        "handicap": 2.0,
+        "under": -128
+      },
+      {
+        "time_of_match": "5",
+        "over": 101,
+        "handicap": 2.0,
+        "under": -130
+      },
+      {
+        "time_of_match": "5",
+        "over": 105,
+        "handicap": 2.0,
+        "under": -120
+      },
+      {
+        "time_of_match": "5",
+        "over": 106,
+        "handicap": 2.0,
+        "under": -122
+      },
+      {
+        "time_of_match": "5",
+        "over": 104,
+        "handicap": 2.0,
+        "under": -119
+      },
+      {
+        "time_of_match": "5",
+        "over": -108,
+        "handicap": 2.0,
+        "under": -139
+      },
+      {
+        "time_of_match": "5",
+        "over": -105,
+        "handicap": 2.0,
+        "under": -143
+      },
+      {
+        "time_of_match": "5",
+        "over": -103,
+        "handicap": 2.0,
+        "under": -120
+      },
+      {
+        "time_of_match": "5",
+        "over": 104,
+        "handicap": 2.0,
+        "under": -130
+      },
+      {
+        "time_of_match": "5",
+        "over": -182,
+        "handicap": 1.5,
+        "under": 130
+      },
+      {
+        "time_of_match": "5",
+        "over": 100,
+        "handicap": 2.0,
+        "under": -122
+      },
+      {
+        "time_of_match": "5",
+        "over": -101,
+        "handicap": 2.0,
+        "under": -120
+      },
+      {
+        "time_of_match": "5",
+        "over": 103,
+        "handicap": 2.0,
+        "under": -118
+      },
+      {
+        "time_of_match": "5",
+        "over": 109,
+        "handicap": 2.0,
+        "under": -127
+      },
+      {
+        "time_of_match": "5",
+        "over": 103,
+        "handicap": 2.0,
+        "under": -118
+      },
+      {
+        "time_of_match": "5",
+        "over": -120,
+        "handicap": 1.75,
+        "under": 105
+      },
+      {
+        "time_of_match": "5",
+        "over": -122,
+        "handicap": 1.75,
+        "under": 106
+      },
+      {
+        "time_of_match": "5",
+        "over": -130,
+        "handicap": 1.75,
+        "under": 109
+      },
+      {
+        "time_of_match": "5",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -128
+      },
+      {
+        "time_of_match": "5",
+        "over": 109,
+        "handicap": 2.0,
+        "under": -127
+      },
+      {
+        "time_of_match": "5",
+        "over": -128,
+        "handicap": 1.75,
+        "under": 108
+      },
+      {
+        "time_of_match": "5",
+        "over": 108,
+        "handicap": 2.0,
+        "under": -128
+      },
+      {
+        "time_of_match": "5",
+        "over": 106,
+        "handicap": 2.0,
+        "under": -127
+      },
+      {
+        "time_of_match": "6",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -130
+      },
+      {
+        "time_of_match": "6",
+        "over": 100,
+        "handicap": 2.0,
+        "under": -125
+      },
+      {
+        "time_of_match": "6",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -130
+      },
+      {
+        "time_of_match": "6",
+        "over": -133,
+        "handicap": 1.75,
+        "under": 105
+      },
+      {
+        "time_of_match": "6",
+        "over": -130,
+        "handicap": 1.75,
+        "under": 102
+      },
+      {
+        "time_of_match": "6",
+        "over": -133,
+        "handicap": 1.75,
+        "under": 105
+      },
+      {
+        "time_of_match": "6",
+        "over": 111,
+        "handicap": 2.0,
+        "under": -132
+      },
+      {
+        "time_of_match": "6",
+        "over": 102,
+        "handicap": 2.0,
+        "under": -130
+      },
+      {
+        "time_of_match": "6",
+        "over": -189,
+        "handicap": 1.5,
+        "under": 125
+      },
+      {
+        "time_of_match": "6",
+        "over": -122,
+        "handicap": 1.75,
+        "under": 106
+      },
+      {
+        "time_of_match": "6",
+        "over": -105,
+        "handicap": 2.0,
+        "under": -143
+      },
+      {
+        "time_of_match": "6",
+        "over": -118,
+        "handicap": 1.75,
+        "under": 103
+      },
+      {
+        "time_of_match": "6",
+        "over": -127,
+        "handicap": 1.75,
+        "under": 102
+      },
+      {
+        "time_of_match": "6",
+        "over": 100,
+        "handicap": 2.0,
+        "under": -125
+      },
+      {
+        "time_of_match": "6",
+        "over": -101,
+        "handicap": 2.0,
+        "under": -123
+      },
+      {
+        "time_of_match": "6",
+        "over": 101,
+        "handicap": 2.0,
+        "under": -123
+      },
+      {
+        "time_of_match": "6",
+        "over": -122,
+        "handicap": 1.75,
+        "under": 100
+      },
+      {
+        "time_of_match": "6",
+        "over": 103,
+        "handicap": 2.0,
+        "under": -127
+      },
+      {
+        "time_of_match": "6",
+        "over": 101,
+        "handicap": 2.0,
+        "under": -123
+      },
+      {
+        "time_of_match": "6",
+        "over": -122,
+        "handicap": 1.75,
+        "under": 104
+      },
+      {
+        "time_of_match": "6",
+        "over": 108,
+        "handicap": 2.0,
+        "under": -128
+      },
+      {
+        "time_of_match": "6",
+        "over": -130,
+        "handicap": 1.75,
+        "under": 103
+      },
+      {
+        "time_of_match": "6",
+        "over": -120,
+        "handicap": 1.75,
+        "under": 105
+      },
+      {
+        "time_of_match": "6",
+        "over": -130,
+        "handicap": 1.75,
+        "under": 108
+      },
+      {
+        "time_of_match": "6",
+        "over": -128,
+        "handicap": 1.75,
+        "under": 107
+      },
+      {
+        "time_of_match": "6",
+        "over": -127,
+        "handicap": 1.75,
+        "under": 106
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": 145,
+        "handicap": 2.5,
+        "under": -200
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": 138,
+        "handicap": 2.5,
+        "under": -182
+      },
+      {
+        "time_of_match": "pre-match",
+        "over": 125,
+        "handicap": 2.5,
+        "under": -167
+      }
+    ]
+  },
+  "ou_line": 2.0,
+  "ou_over": 102,
+  "ou_under": -130,
+  "ml_home": -105,
+  "ml_draw": 210,
+  "ml_away": 350,
+  "_loop_index": 11,
+  "_total_matches": 12,
+  "home_score": 4,
+  "away_score": 0,
+  "home_ht_score": 3,
+  "away_ht_score": 0,
+  "weather": "Partially cloudy",
+  "humidity": "80%",
+  "wind": "4.1m/s (9.2 mph)"
+}

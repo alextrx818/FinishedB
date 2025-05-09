@@ -1,4 +1,27 @@
 """
+# EDIT REPORT - 2025-05-09
+# Impact of Resilience Enhancements on Logger System
+#
+# Changes impacting this file:
+# 1. Combined failure test temporarily renames this file to test import error handling
+# 2. Error handling in live.py now properly reports main_logger import failures
+# 3. All send_system_alert() calls now use standardized alert severity levels
+#
+# See EDIT_REPORT_TEST.md for complete details.
+#
+================================================================
+CRITICAL SYSTEM INDEPENDENCE NOTE:
+================================================================
+This main_logger.py system MUST function independently of Supabase.
+Specifically:
+
+1. The main.logger file MUST be created even if Supabase connection fails
+2. This module MUST operate even without database connectivity
+3. All logging to file MUST work regardless of external service status
+
+IF YOU MODIFY THIS FILE: Ensure these principles are preserved!
+================================================================
+
 =====================================================================
 IMPORTANT: TERMINAL OUTPUT AND LOGGER FILE SYSTEMS DOCUMENTATION
 =====================================================================
@@ -52,8 +75,32 @@ import pytz
 import threading
 import sys
 import logging
+import json
 from logging.handlers import TimedRotatingFileHandler
-from football.logger.db_api import supabase
+
+# Try to import supabase but make it optional
+try:
+    from supabase_config import supabase
+    SUPABASE_AVAILABLE = bool(supabase)  # Will be True if supabase connection exists
+except (ImportError, Exception) as e:
+    original_print = builtins.print  # Save original print before we override it
+    original_print(f"Supabase import error: {e}")
+    supabase = None
+    SUPABASE_AVAILABLE = False
+
+class SupabaseHandler(logging.Handler):
+    def emit(self, record):
+        if SUPABASE_AVAILABLE and supabase:
+            try:
+                supabase.table("logs").insert({
+                    "level": record.levelname,
+                    "msg":   record.getMessage(),
+                    "time":  record.created
+                }).execute()
+            except Exception as e:
+                # Using original_print here to avoid circular reference with new_print
+                if hasattr(builtins, 'original_print'):
+                    builtins.original_print(f"Supabase logging error: {e}")
 
 # Add threading lock for thread-safe file operations
 _log_lock = threading.Lock()
@@ -78,7 +125,7 @@ SMOOTH_SCROLLING = True  # Set to True to allow free scrolling without jumps
 
 # Import constants if possible, otherwise define locally
 try:
-    from football.live import API_DATETIME_FORMAT
+    from live import API_DATETIME_FORMAT
 except ImportError:
     API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p ET"
 
@@ -104,21 +151,36 @@ original_print("LOG FILE PATH →", LOG_FILE_PATH)
 def send_to_db(chunk: str):
     """Send log chunk to Supabase database using Python client"""
     try:
-        # Insert the log chunk into main_logger_logs table
-        print("▶️ PAYLOAD:", chunk, flush=True)
-        response = supabase \
-            .table("main_logger_logs") \
-            .insert({"content": chunk}) \
-            .execute()
-        if getattr(response, "error", None):
-            print("   ❌ INSERT FAILED:", response.error, flush=True)
+        # If this is the JSON payload from live.py, send it to archived_json
+        if chunk.startswith("▶️ PAYLOAD:"):
+            # strip off the prefix and parse JSON
+            json_str = chunk[len("▶️ PAYLOAD:"):].strip()
+            try:
+                data = json.loads(json_str)
+            except Exception as e:
+                original_print(f"⚠️ JSON parse error: {e}")
+                return
+            resp = supabase.table("archived_json").insert({"raw_json": data}).execute()
+            if getattr(resp, "error", None):
+                original_print("   ❌ INSERT FAILED:", resp.error)
+            else:
+                original_print("   ✅ Inserted, DB row id:", resp.data[0]["id"])
         else:
-            print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
+            # Insert the log chunk into main_logger_logs table
+            original_print("▶️ PAYLOAD:", chunk, flush=True)
+            response = supabase \
+                .table("main_logger_logs") \
+                .insert({"content": chunk}) \
+                .execute()
+            if getattr(response, "error", None):
+                original_print("   ❌ INSERT FAILED:", response.error)
+            else:
+                original_print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
     except Exception as e:
         original_print(f"⚠️ Supabase logging error: {str(e)}")
 
 # Register the listener if supabase is available
-if supabase:
+if SUPABASE_AVAILABLE and supabase:
     event_listeners.append(send_to_db)
     original_print("✓ Supabase logger initialized and listener registered for main_logger_logs table")
 else:
@@ -235,27 +297,30 @@ def handle_match_header(text):
 # Function to handle the end of a buffer
 def handle_buffer_end():
     global buffering, buffer_lines
-    chunk = "".join(buffer_lines)
+    if not buffering:
+        return
+    
+    # Add a blank line after match to help readability
+    buffer_lines.append("\n")
     
     try:
-        # Before writing to the log file, call all event listeners
-        # Create a temporary buffer to capture output from listeners
-        listener_output_buffer = []
-        
-        # Only execute if there are listeners
-        if event_listeners:
-            # Temporarily swap print function to capture any diagnostic output
-            # from event listeners and ensure it's included in both terminal
-            # and log file outputs
+        with _log_lock:
+            chunk = "".join(buffer_lines)
+            
+            # Save the original print function
             old_print = builtins.print
             
-            # Define a temporary print interceptor that captures output
-            # and prints it to the terminal
+            # Set up temporary buffer to capture any output from listeners
+            listener_output_buffer = []
+            
+            # Define a function to capture print output during listener calls
             def capture_print(*args, **kwargs):
-                # Get the text being captured
-                sep = kwargs.get('sep', ' ')
-                end = kwargs.get('end', '\n')
-                text = sep.join(str(arg) for arg in args) + end
+                # Convert to string like the normal print would
+                text = " ".join(str(arg) for arg in args)
+                if "end" in kwargs:
+                    text += kwargs["end"]
+                else:
+                    text += "\n"
                 
                 # Print to terminal using flush parameter if smooth scrolling is enabled
                 if SMOOTH_SCROLLING:
@@ -273,23 +338,67 @@ def handle_buffer_end():
                 try:
                     listener(chunk)
                 except Exception as e:
-                    original_print("Listener error:", e)
+                    error_msg = f"Listener error: {e}"
+                    original_print(error_msg)
+                    # Try to send alert about listener failure
+                    try:
+                        # Import these only when needed to avoid circular imports
+                        import importlib
+                        telegram_mod = importlib.import_module("football.telegram")
+                        if hasattr(telegram_mod, "send_system_alert"):
+                            telegram_mod.send_system_alert(
+                                f"Logger listener failed during processing",
+                                alert_type="warning",
+                                error_details=error_msg
+                            )
+                    except Exception as alert_error:
+                        original_print(f"Could not send alert about listener failure: {alert_error}")
             
             # Restore original print function
             builtins.print = old_print
         
         # Add any captured output from listeners to our chunk
-        if listener_output_buffer:
-            chunk += "".join(listener_output_buffer)
+        chunk += "".join(listener_output_buffer)
         
         # IMPORTANT: Actually write the data to the log file
         # This is the missing piece - we need to use the logger here
         if chunk.strip():  # Only log non-empty chunks
-            logger = logging.getLogger("live")
-            logger.info(chunk.strip())
+            try:
+                logger = logging.getLogger("live")
+                logger.info(chunk.strip())
+            except Exception as log_error:
+                error_msg = f"Failed to write to log file: {log_error}"
+                original_print(f"CRITICAL ERROR: {error_msg}")
+                # Try to send alert about log writing failure
+                try:
+                    # Import these only when needed to avoid circular imports
+                    import importlib
+                    telegram_mod = importlib.import_module("football.telegram")
+                    if hasattr(telegram_mod, "send_system_alert"):
+                        telegram_mod.send_system_alert(
+                            "CRITICAL: Failed to write to main.logger file",
+                            alert_type="error",
+                            error_details=error_msg
+                        )
+                except Exception as alert_error:
+                    original_print(f"Could not send alert about log writing failure: {alert_error}")
         
     except Exception as e:
-        original_print("Logger write error:", e)
+        error_msg = f"Logger write error: {e}"
+        original_print(error_msg)
+        # Try to send alert about overall buffer handling failure
+        try:
+            # Import these only when needed to avoid circular imports
+            import importlib
+            telegram_mod = importlib.import_module("football.telegram")
+            if hasattr(telegram_mod, "send_system_alert"):
+                telegram_mod.send_system_alert(
+                    "CRITICAL: Logger buffer processing failed",
+                    alert_type="error",
+                    error_details=error_msg
+                )
+        except Exception as alert_error:
+            original_print(f"Could not send alert about buffer processing failure: {alert_error}")
     
     # Reset buffering state
     buffering = False
@@ -336,28 +445,82 @@ def setup_logger():
         formatter = logging.Formatter('%(message)s')
         
         # Create a rotating file handler that rolls over at midnight, keeps 30 days
-        rotating_handler = TimedRotatingFileHandler(
-            LOG_FILE_PATH,
-            when="midnight",      # roll over at midnight
-            interval=1,           # every 1 day
-            backupCount=30,       # keep 30 days' worth of logs
-            encoding="utf-8",     # use UTF-8 encoding
-            utc=False             # use local time for rollover
-        )
-        rotating_handler.setLevel(logging.INFO)
-        rotating_handler.setFormatter(formatter)
+        try:
+            rotating_handler = TimedRotatingFileHandler(
+                LOG_FILE_PATH,
+                when="midnight",      # roll over at midnight
+                interval=1,           # every 1 day
+                backupCount=30,       # keep 30 days' worth of logs
+                encoding="utf-8",     # use UTF-8 encoding
+                utc=False             # use local time for rollover
+            )
+            rotating_handler.setLevel(logging.INFO)
+            rotating_handler.setFormatter(formatter)
+            
+            # append the date suffix (so your files become main.logger.2025-05-04, etc.)
+            rotating_handler.suffix = "%Y-%m-%d"
+            
+            logger.addHandler(rotating_handler)
+        except Exception as file_error:
+            original_print(f"CRITICAL ERROR: Could not set up log file: {file_error}")
+            # Try to send alert about logging failure
+            try:
+                # Import these only when needed to avoid circular imports
+                import importlib
+                telegram_mod = importlib.import_module("football.telegram")
+                if hasattr(telegram_mod, "send_system_alert"):
+                    telegram_mod.send_system_alert(
+                        "CRITICAL: Failed to create main.logger file",
+                        alert_type="error",
+                        error_details=str(file_error)
+                    )
+            except Exception as alert_error:
+                original_print(f"Could not send alert about logger failure: {alert_error}")
+            # Continue anyway - we'll operate without file logging
         
-        # append the date suffix (so your files become main.logger.2025-05-04, etc.)
-        rotating_handler.suffix = "%Y-%m-%d"
-        
-        logger.addHandler(rotating_handler)
+        # Add Supabase handler only if available
+        if SUPABASE_AVAILABLE and supabase:
+            try:
+                supabase_handler = SupabaseHandler()
+                supabase_handler.setLevel(logging.INFO)
+                logger.addHandler(supabase_handler)
+            except Exception as e:
+                error_msg = f"Failed to add Supabase handler: {e}"
+                original_print(error_msg)
+                # Try to send alert about Supabase handler failure
+                try:
+                    # Import these only when needed to avoid circular imports
+                    import importlib
+                    telegram_mod = importlib.import_module("football.telegram")
+                    if hasattr(telegram_mod, "send_system_alert"):
+                        telegram_mod.send_system_alert(
+                            "Failed to initialize Supabase logging handler",
+                            alert_type="warning",
+                            error_details=error_msg
+                        )
+                except Exception as alert_error:
+                    original_print(f"Could not send alert about Supabase handler failure: {alert_error}")
         
         # REMOVED: Console handler causing duplication
         # The new_print() function already handles terminal output
         # No need for the logger to also send to console
         
     except Exception as e:
-        original_print("Logger setup error:", e)
+        error_msg = f"Logger setup error: {e}"
+        original_print(error_msg)
+        # Try to send alert about overall logger setup failure
+        try:
+            # Import these only when needed to avoid circular imports
+            import importlib
+            telegram_mod = importlib.import_module("football.telegram")
+            if hasattr(telegram_mod, "send_system_alert"):
+                telegram_mod.send_system_alert(
+                    "CRITICAL: Logger setup failed completely",
+                    alert_type="error",
+                    error_details=error_msg
+                )
+        except Exception as alert_error:
+            original_print(f"Could not send alert about logger setup failure: {alert_error}")
 
 # Immediately call setup_logger()
 setup_logger()

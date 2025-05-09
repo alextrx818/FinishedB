@@ -1,4 +1,585 @@
 #!/usr/bin/env python3
+# ⚠️ Please review docs/live-policy.md for all critical init & change-doc requirements.
+
+# Initialize availability flags before any imports or handlers
+# These will be properly set later during actual imports
+TELEGRAM_AVAILABLE = False  # Flag for availability of Telegram notifications
+SUPABASE_AVAILABLE = False  # Flag for availability of database features
+VERBOSE_OUTPUT = False     # Flag for verbose logging (set via command line)
+
+# ======== CONFIGURABLE SETTINGS ========
+# Load configuration from environment variables with reasonable defaults
+import os
+import time  # For time-based operations and benchmarking
+
+# Global for storing main event loop to reuse during shutdown
+MAIN_EVENT_LOOP = None
+
+# Performance and reliability settings
+MAX_RETRIES = int(os.environ.get('SPORTS_BOT_MAX_RETRIES', '3'))                # API request retry count
+RETRY_BACKOFF = float(os.environ.get('SPORTS_BOT_RETRY_BACKOFF', '1.5'))        # Exponential backoff multiplier
+DB_SEMAPHORE_SIZE = int(os.environ.get('SPORTS_BOT_DB_CONCURRENCY', '10'))      # Max concurrent DB operations
+ALERT_SEMAPHORE_SIZE = int(os.environ.get('SPORTS_BOT_ALERT_CONCURRENCY', '5')) # Max concurrent alerts
+DEFAULT_INTERVAL = int(os.environ.get('SPORTS_BOT_UPDATE_INTERVAL', '30'))      # Default update interval in seconds
+JSON_LOG_RATE = int(os.environ.get('SPORTS_BOT_JSON_LOG_RATE', '5'))            # Log every Nth match in non-verbose mode
+GRACEFUL_SHUTDOWN_DELAY = float(os.environ.get('SPORTS_BOT_SHUTDOWN_DELAY', '1.0')) # Seconds before forced exit
+DB_BATCH_SIZE = int(os.environ.get('SPORTS_BOT_DB_BATCH_SIZE', '10'))           # Number of records to batch in a single DB insert
+DB_FLUSH_INTERVAL = int(os.environ.get('SPORTS_BOT_DB_FLUSH_INTERVAL', '60'))   # Seconds between forced DB batch flushes
+ENABLE_BATCH_INSERTS = os.environ.get('SPORTS_BOT_ENABLE_BATCH_INSERTS', 'true').lower() == 'true'  # Enable batch DB inserts
+ASYNC_LOGGING = os.environ.get('SPORTS_BOT_ASYNC_LOGGING', 'true').lower() == 'true'  # Enable async logging
+
+# Entity cache settings
+ENTITY_CACHE_PATH = os.environ.get('SPORTS_BOT_CACHE_PATH', '/tmp/sports_bot_cache')  # Entity cache location
+ENTITY_CACHE_TTL = int(os.environ.get('SPORTS_BOT_CACHE_TTL', '86400'))         # Entity cache TTL in seconds (default: 24h)
+ENABLE_ENTITY_CACHE = os.environ.get('SPORTS_BOT_ENABLE_CACHE', 'true').lower() == 'true'  # Enable entity caching
+
+# Advanced benchmarking and instrumentation
+BENCHMARK_HOT_PATHS = os.environ.get('SPORTS_BOT_BENCHMARK', 'false').lower() == 'true'  # Enable detailed benchmarking
+GC_TUNING_ENABLED = os.environ.get('SPORTS_BOT_GC_TUNING', 'false').lower() == 'true'  # Enable GC optimizations
+
+try:
+    import aiohttp
+    AIOHTTP_AVAILABLE = True
+    
+    # Define connection settings but don't create the connector yet
+    # We'll create it when we have a running event loop
+    CONN_PARAMS = {
+        "limit": int(os.environ.get('SPORTS_BOT_CONN_LIMIT', '10')),        # Overall connection limit
+        "limit_per_host": int(os.environ.get('SPORTS_BOT_HOST_LIMIT', '5')), # Prevent overwhelming any single endpoint
+        "enable_cleanup_closed": True,  # Prevent socket leak
+        "force_close": False,     # Keep connections alive when possible
+        "ttl_dns_cache": 300      # Cache DNS results for 5 minutes
+    }
+    
+    # Set reasonable timeouts to prevent hung connections
+    TIMEOUT_PARAMS = {
+        "total": int(os.environ.get('SPORTS_BOT_TIMEOUT_TOTAL', '30')),     # Overall operation timeout
+        "connect": int(os.environ.get('SPORTS_BOT_TIMEOUT_CONNECT', '10')),  # Connection establishment timeout
+        "sock_read": int(os.environ.get('SPORTS_BOT_TIMEOUT_READ', '15'))   # Socket read timeout
+    }
+
+    # Module-level HTTP session for reuse - will be properly initialized in main_async
+    HTTP_SESSION = None
+    
+except ImportError:
+    AIOHTTP_AVAILABLE = False
+    
+# GC optimization imports
+if GC_TUNING_ENABLED:
+    try:
+        import gc
+        print("✓ GC tuning enabled - optimizing garbage collection")  
+    except ImportError:
+        print("⚠️ GC module not available")
+        GC_TUNING_ENABLED = False
+
+# Entity cache management
+if ENABLE_ENTITY_CACHE:
+    try:
+        import os.path
+        import json
+        import pickle
+        import hashlib
+        
+        # Create cache directory if it doesn't exist
+        if not os.path.exists(ENTITY_CACHE_PATH):
+            os.makedirs(ENTITY_CACHE_PATH, exist_ok=True)
+        
+        def load_entity_cache(cache_key, default=None):
+            """Load entity data from disk cache with TTL validation"""
+            cache_file = os.path.join(ENTITY_CACHE_PATH, f"{cache_key}.cache")
+            try:
+                # Check if cache file exists and is within TTL
+                if os.path.exists(cache_file):
+                    file_age = time.time() - os.path.getmtime(cache_file)
+                    if file_age < ENTITY_CACHE_TTL:
+                        with open(cache_file, 'rb') as f:
+                            cached_data = pickle.load(f)
+                            if VERBOSE_OUTPUT:
+                                print(f"✓ Loaded cache for {cache_key} (age: {file_age:.1f}s)")
+                            return cached_data
+                    elif VERBOSE_OUTPUT:
+                        print(f"⚠️ Cache for {cache_key} expired (age: {file_age:.1f}s > TTL: {ENTITY_CACHE_TTL}s)")
+            except Exception as e:
+                if VERBOSE_OUTPUT:
+                    print(f"Error loading cache for {cache_key}: {e}")
+            return default
+        
+        def save_entity_cache(cache_key, data):
+            """Save entity data to disk cache"""
+            cache_file = os.path.join(ENTITY_CACHE_PATH, f"{cache_key}.cache")
+            try:
+                with open(cache_file, 'wb') as f:
+                    pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+                if VERBOSE_OUTPUT:
+                    print(f"✓ Saved cache for {cache_key}")
+                return True
+            except Exception as e:
+                if VERBOSE_OUTPUT:
+                    print(f"Error saving cache for {cache_key}: {e}")
+                return False
+        
+        def generate_cache_key(resource_type, resource_id=None, query_params=None):
+            """Generate a deterministic cache key for an API resource"""
+            if resource_id:
+                key_parts = [resource_type, str(resource_id)]
+            else:
+                key_parts = [resource_type]
+                
+            # Add query params to key if provided
+            if query_params:
+                # Sort to ensure deterministic keys
+                sorted_params = sorted(query_params.items())
+                for k, v in sorted_params:
+                    if k not in ['user', 'secret']:  # Skip credentials
+                        key_parts.append(f"{k}={v}")
+            
+            # Create a hash of the key for filesystem safety
+            key_str = "_".join(key_parts)
+            key_hash = hashlib.md5(key_str.encode()).hexdigest()[:10]
+            return f"{resource_type}_{key_hash}"
+        
+        print("✓ Entity cache system initialized at", ENTITY_CACHE_PATH)
+    except ImportError as e:
+        print(f"⚠️ Entity caching disabled due to missing dependencies: {e}")
+        ENABLE_ENTITY_CACHE = False
+
+# Performance benchmarking decorator
+if BENCHMARK_HOT_PATHS:
+    def perf_benchmark(func):
+        """Decorator to benchmark function execution time"""
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            start = time.perf_counter()
+            result = func(*args, **kwargs)
+            duration = time.perf_counter() - start
+            
+            # Store timing metrics
+            func_name = func.__qualname__
+            if not hasattr(Metrics, 'function_timings'):
+                Metrics.function_timings = {}
+            if func_name not in Metrics.function_timings:
+                Metrics.function_timings[func_name] = {'calls': 0, 'total': 0.0, 'min': float('inf'), 'max': 0.0}
+            
+            stats = Metrics.function_timings[func_name]
+            stats['calls'] += 1
+            stats['total'] += duration
+            stats['min'] = min(stats['min'], duration)
+            stats['max'] = max(stats['max'], duration)
+            
+            # Log if this is an unusually slow call (>3x average)
+            avg = stats['total'] / stats['calls']
+            if stats['calls'] > 10 and duration > avg * 3 and duration > 0.1:
+                if VERBOSE_OUTPUT:
+                    print(f"Slow {func_name}: {duration:.4f}s (avg: {avg:.4f}s)")
+            
+            return result
+        return wrapper
+else:
+    # No-op decorator when benchmarking is disabled
+    def perf_benchmark(func):
+        return func
+
+# Optional aiofiles for non-blocking file I/O
+try:
+    import aiofiles
+    import asyncio
+    AIOFILES_AVAILABLE = True
+    
+    # Async logging queue setup with batching
+    class AsyncJsonLogger:
+        def __init__(self, filename: str, max_queue_size: int = 1000):
+            self.filename = filename
+            self.queue = asyncio.Queue(maxsize=max_queue_size)
+            self.running = True
+            self.worker_task = None
+            # Batching settings
+            self.batch = []
+            self.batch_size = int(os.environ.get('SPORTS_BOT_LOG_BATCH_SIZE', '20'))  # Messages per batch
+            self.batch_interval = float(os.environ.get('SPORTS_BOT_LOG_BATCH_INTERVAL', '5.0'))  # Seconds
+            self.last_flush = time.time()
+            
+        async def start_worker(self):
+            """Start the async logging worker"""
+            self.worker_task = asyncio.create_task(self._worker())
+            
+        async def _worker(self):
+            """Worker that processes queued log messages with batching"""
+            try:
+                async with aiofiles.open(self.filename, 'a') as f:
+                    while self.running:
+                        try:
+                            # Check if we need a time-based flush
+                            time_since_flush = time.time() - self.last_flush
+                            if self.batch and time_since_flush >= self.batch_interval:
+                                await self._flush_batch(f)
+                                continue
+                            
+                            # Try to get a message with timeout
+                            message = await asyncio.wait_for(self.queue.get(), timeout=1.0)
+                            self.batch.append(message)
+                            self.queue.task_done()
+                            
+                            # Flush if batch is full
+                            if len(self.batch) >= self.batch_size:
+                                await self._flush_batch(f)
+                                
+                        except asyncio.TimeoutError:
+                            # No message available, check if we need to flush
+                            if self.batch and time_since_flush >= self.batch_interval:
+                                await self._flush_batch(f)
+                            continue
+                        except Exception as e:
+                            print(f"Error in async logger worker: {e}")
+            except Exception as e:
+                print(f"Failed to open log file {self.filename}: {e}")
+        
+        async def _flush_batch(self, file_handle):
+            """Flush the current batch of messages to disk"""
+            if not self.batch:
+                return
+                
+            try:
+                # Write all batched messages at once
+                await file_handle.write('\n'.join(self.batch) + '\n')
+                await file_handle.flush()  # Ensure it's written to disk
+                self.last_flush = time.time()
+                
+                if VERBOSE_OUTPUT and len(self.batch) > 1:
+                    print(f"Flushed batch of {len(self.batch)} log messages")
+                    
+                # Clear the batch
+                self.batch = []
+            except Exception as e:
+                print(f"Error flushing log batch: {e}")
+                        
+        async def debug(self, message):
+            """Queue a debug message for async writing"""
+            if ASYNC_LOGGING:
+                try:
+                    # Use non-blocking put with a timeout
+                    await asyncio.wait_for(self.queue.put(message), timeout=0.1)
+                except asyncio.TimeoutError:
+                    # Queue is full, log this and continue
+                    if VERBOSE_OUTPUT:
+                        print(f"Async logger queue full, dropping message")
+                except Exception as e:
+                    print(f"Error queuing log message: {e}")
+            else:
+                # Fallback to synchronous logging if async logging is disabled
+                try:
+                    with open(self.filename, 'a') as f:
+                        f.write(message + '\n')
+                except Exception as e:
+                    print(f"Error writing to log file: {e}")
+                    
+        async def shutdown(self):
+            """Gracefully shut down the logger"""
+            self.running = False
+            
+            # Make sure any batched messages are flushed
+            if self.batch:
+                try:
+                    async with aiofiles.open(self.filename, 'a') as f:
+                        await self._flush_batch(f)
+                except Exception as e:
+                    print(f"Error during final batch flush: {e}")
+            
+            if self.worker_task:
+                try:
+                    # Wait for remaining messages to be processed
+                    await asyncio.wait_for(self.queue.join(), timeout=5.0)
+                    self.worker_task.cancel()
+                    await asyncio.wait_for(asyncio.gather(self.worker_task, return_exceptions=True), timeout=1.0)
+                except (asyncio.TimeoutError, asyncio.CancelledError):
+                    # If we timeout waiting, we still want to cancel the task
+                    if self.worker_task and not self.worker_task.done():
+                        self.worker_task.cancel()
+                except Exception as e:
+                    print(f"Error during logger shutdown: {e}")
+    
+except ImportError:
+    AIOFILES_AVAILABLE = False
+
+# ======== METRICS TRACKING ========
+# Simple counters for operational metrics and monitoring
+class Metrics:
+    """Track operational metrics for monitoring and health checks"""
+    alerts_sent = 0          # Total number of alerts sent
+    alerts_skipped = 0       # Alerts skipped due to back-pressure
+    db_operations = 0        # Total DB operations attempted
+    db_successes = 0         # Successful DB operations
+    db_failures = 0          # Failed DB operations
+    db_skipped = 0           # DB operations skipped due to back-pressure
+    api_requests = 0         # Total API requests
+    api_retries = 0          # API request retries
+    api_failures = 0         # Failed API requests after all retries
+    startup_time = None      # Set when system starts
+    last_refresh = None      # Last data refresh time
+    processed_matches = 0    # Total matches processed
+    
+    @classmethod
+    def get_health_report(cls) -> dict:
+        """Return a health check report with key metrics"""
+        return {
+            "alerts": {
+                "sent": cls.alerts_sent,
+                "skipped": cls.alerts_skipped,
+            },
+            "database": {
+                "operations": cls.db_operations,
+                "successes": cls.db_successes,
+                "failures": cls.db_failures,
+                "skipped": cls.db_skipped,
+                "success_rate": (cls.db_successes / cls.db_operations if cls.db_operations > 0 else 1.0),
+            },
+            "api": {
+                "requests": cls.api_requests,
+                "retries": cls.api_retries,
+                "failures": cls.api_failures,
+                "retry_rate": (cls.api_retries / cls.api_requests if cls.api_requests > 0 else 0.0),
+            },
+            "uptime": {
+                "startup": cls.startup_time.isoformat() if cls.startup_time else None,
+                "last_refresh": cls.last_refresh.isoformat() if cls.last_refresh else None,
+            },
+            "matches": {
+                "processed": cls.processed_matches,
+            }
+        }
+
+# ======== GLOBAL EXCEPTION HANDLING ========
+# Import core modules needed for exception handling
+try:
+    import sys
+    import threading
+    import traceback
+    import asyncio  # Import asyncio early to ensure exception handler is set up
+    
+    # Global exception handler for main process
+    def _handle_exception(exc_type, exc_value, exc_tb):
+        """Handle uncaught exceptions in the main thread"""
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_tb)
+            return
+        
+        tb = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        error_msg = f"❌ LIVE.PY CRASH: {exc_value}"
+        print(error_msg)
+        print(tb)
+        
+        # Direct import attempt - TELEGRAM_AVAILABLE isn't defined yet
+        try:
+            from telegram import send_system_alert
+            send_alert_with_backpressure(error_msg, alert_type="critical", error_details=tb)
+        except Exception as alert_err:
+            print(f"⚠️ Could not send Telegram alert: {alert_err}")
+        
+        # Allow cleanup hooks to run before exit
+        print("Scheduling shutdown in 1 second to allow cleanup...")
+        import threading
+        threading.Timer(1.0, lambda: os._exit(1)).start()
+    
+    # Thread exception handler
+    def _handle_thread_exception(args):
+        """Handle uncaught exceptions in worker threads"""
+        error_msg = f"❌ Thread '{args.thread.name}' crashed: {args.exc_value}"
+        tb = "".join(traceback.format_exception(args.exc_type, args.exc_value, args.exc_traceback))
+        print(error_msg)
+        print(tb)
+        
+        # For thread exceptions, we can check TELEGRAM_AVAILABLE since it will be defined by the time threads are running
+        if 'TELEGRAM_AVAILABLE' in globals() and TELEGRAM_AVAILABLE:
+            try:
+                from telegram import send_system_alert
+                send_alert_with_backpressure(error_msg, alert_type="error", error_details=tb)  # Downgraded from critical as thread errors may not be fatal
+            except Exception as alert_err:
+                print(f"⚠️ Could not send Telegram alert: {alert_err}")
+    
+    # Asyncio exception handler
+    def _handle_asyncio_exception(loop, context):
+        """Handle uncaught exceptions in asyncio tasks"""
+        error_msg = f"❌ Asyncio error: {context.get('exception') or context.get('message')}"
+        exc = context.get('exception')
+        tb = ''.join(traceback.format_exception(type(exc), exc, exc.__traceback__)) if exc else str(context)
+        print(error_msg)
+        print(tb)
+        
+        # For asyncio exceptions, we can check TELEGRAM_AVAILABLE since it will be defined by the time tasks are running
+        if 'TELEGRAM_AVAILABLE' in globals() and TELEGRAM_AVAILABLE:
+            try:
+                from telegram import send_system_alert
+                send_alert_with_backpressure(error_msg, alert_type="error", error_details=tb)  # Downgraded from critical as task errors may not be fatal
+            except Exception as alert_err:
+                print(f"⚠️ Could not send Telegram alert: {alert_err}")
+    
+    # Install exception hooks
+    sys.excepthook = _handle_exception
+    threading.excepthook = _handle_thread_exception
+    
+    # Automatically enable uvloop for ~2-3x better async performance if available
+    try:
+        import uvloop
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        print("✓ uvloop enabled for improved async performance")
+    except ImportError:
+        pass  # uvloop not installed, continuing with standard loop
+    
+    # Install asyncio exception handler - do this directly after threading hook
+    # We do this once here, early in the startup process, and never again
+    try:
+        loop = asyncio.get_event_loop()
+        loop.set_exception_handler(_handle_asyncio_exception)
+        print("✓ Asyncio exception handler installed")
+    except Exception as e:
+        print(f"❌ CRITICAL: Could not setup asyncio exception handler: {e}")
+        # Allow cleanup hooks to run before exit
+        print("Scheduling shutdown in 1 second to allow cleanup...")
+        threading.Timer(1.0, lambda: os._exit(1)).start()
+        # We won't try again - if we can't set it up now, it likely won't work later either
+    
+    # Patch asyncio.run to ensure any new loops also get our exception handler
+    original_asyncio_run = asyncio.run
+    def patched_asyncio_run(coro, **kwargs):
+        try:
+            return original_asyncio_run(coro, **kwargs)
+        except Exception as e:
+            # Handle any exceptions that might escape asyncio.run
+            _handle_exception(type(e), e, e.__traceback__)
+            return None
+    
+    # Replace the standard asyncio.run with our patched version
+    asyncio.run = patched_asyncio_run
+    print("✓ Patched asyncio.run to ensure all loops use our exception handler")
+
+except Exception as e:
+    print(f"⚠️ Failed to set up exception handlers: {e}")
+    # Continue running even if exception handlers fail
+
+# Concurrency limiter for back-pressure management
+# This prevents unbounded queuing when downstream systems slow down
+# Using threading.Semaphore instead of asyncio.Semaphore for sync code compatibility
+ALERT_SEMAPHORE = threading.Semaphore(ALERT_SEMAPHORE_SIZE)  # Max pending alert operations (from env var)
+DB_SEMAPHORE = threading.Semaphore(DB_SEMAPHORE_SIZE)        # Max pending DB operations (from env var)
+
+# Helper function for sending alerts with back-pressure management
+def send_alert_with_backpressure(message: str, alert_type: str = "info", error_details: str = None) -> None:
+    """Send alerts with back-pressure control using semaphores"""
+    if not TELEGRAM_AVAILABLE:
+        return
+        
+    # Use a thread-safe approach that works in both sync and async contexts
+    try:
+        # Non-blocking acquire - skip if at capacity
+        if hasattr(ALERT_SEMAPHORE, '_value') and ALERT_SEMAPHORE._value > 0:
+            ALERT_SEMAPHORE.acquire(blocking=False)
+            try:
+                from telegram import send_system_alert
+                send_system_alert(message, alert_type=alert_type, error_details=error_details)
+                # Track alert metrics
+                Metrics.alerts_sent += 1
+            finally:
+                ALERT_SEMAPHORE.release()
+        elif VERBOSE_OUTPUT:
+            print("Skipping alert due to back-pressure (too many concurrent alerts)")
+        Metrics.alerts_skipped += 1
+    except Exception as e:
+        if VERBOSE_OUTPUT:
+            print(f"⚠️ Failed to send alert: {e}")
+    return
+
+# ======== CORE IMPORTS ========
+# These are essential and failure should be caught by the global hook
+import os
+# sys, traceback, threading, and asyncio already imported in the global handler section
+# Use faster JSON serialization if available
+try:
+    import orjson as _json
+    json_dumps = lambda obj: _json.dumps(obj, option=_json.OPT_SERIALIZE_NUMPY).decode()
+    print("✓ Using orjson for improved serialization performance")
+except ImportError:
+    import json as _json
+    json_dumps = lambda obj: _json.dumps(obj, separators=(',',':'))
+
+# Maintain standard json module for compatibility with existing code
+import json
+# time already imported in the global handler section
+import argparse
+import datetime
+import pytz
+import signal
+import fcntl
+import atexit
+import requests
+import functools  # For performance optimizations
+import re         # For regex optimizations
+
+# Pre-compile regex patterns for use in hot path functions
+WIND_VALUE_PATTERN = re.compile(r"([0-9]+(?:\.[0-9]+)?)m/s")
+WEATHER_VALUE_PATTERN = re.compile(r"([0-9]+(?:\.[0-9]+)?)°C")
+
+# Add project to path with error handling
+try:
+    project_path = '/root/CascadeProjects/sports_bot'
+    # Define PROJECT_PATH as global variable for use throughout the script
+    PROJECT_PATH = project_path
+    sys.path.append(project_path)
+    # Verify the path was actually added
+    if project_path in sys.path:
+        print("✓ Added project root to sys.path")
+    else:
+        raise RuntimeError("Path addition verified but not found in sys.path")
+except Exception as e:
+    # This is truly critical as imports will fail without the correct path
+    error_msg = f"CRITICAL: Failed to modify sys.path: {e}"
+    print(f"❌ {error_msg}")
+    # Don't check TELEGRAM_AVAILABLE here since it hasn't been set yet
+    # Just try to import and send directly
+    try:
+        from telegram import send_system_alert
+        # This is correctly marked as critical since it's a fatal startup error
+        send_system_alert(
+            error_msg, 
+            alert_type="critical", 
+            error_details=str(e)
+        )
+    except Exception as alert_err:
+        print(f"❌ Could not send Telegram alert: {alert_err}")
+
+# Make Supabase optional - system will run even if connection fails
+try:
+    from supabase_config import supabase
+    SUPABASE_AVAILABLE = True
+    print("✓ Supabase connection established")
+except Exception as e:
+    print(f"❌ ERROR: Supabase connection failed: {e}")
+    print("⚠️ Running with limited functionality - database features disabled")
+    supabase = None
+    SUPABASE_AVAILABLE = False
+    # Import telegram only after failure to avoid circular imports
+    try:
+        from telegram import send_system_alert
+        send_alert_with_backpressure(
+            f"Supabase connection failed. Sports bot running with limited functionality.", 
+            alert_type="error",
+            error_details=str(e)
+        )
+    except Exception as alert_error:
+        print(f"⚠️ Could not send Telegram alert for Supabase failure: {alert_error}")
+
+print("🔍 DEBUG — CWD:", os.getcwd())
+print("🔍 DEBUG — PYTHONPATH:", os.getenv("PYTHONPATH"))
+
+# Run system module verification - this sends alerts for failures but allows the program to continue
+try:
+    from football.alerts import verify_system
+    print("Running system module verification...")
+    verify_system()
+    print("System verification completed")
+except Exception as e:
+    print(f"⚠️ System verification error: {e} - continuing anyway")
+    # We continue even if verification itself fails
+
 """
 Sports Bot - Live Match Processing System
 
@@ -73,15 +654,53 @@ but is brittle - any changes to print format in this file will likely
 break the logger system in unexpected ways.
 """
 
+# ======== OPTIONAL MODULES ========
+# Define flags for truly optional external dependencies
+SUPABASE_AVAILABLE = False  # Set by the Supabase import block
+TELEGRAM_AVAILABLE = False  # Set by the Telegram import block
+
+# Import logger modules
+# These are expected to be present, and failures will be caught by the global hook
 import logger.main_logger
 import logger.log_filters.pnts3_start.pnts3_start
-import json
-from logger.db_api import supabase
+from logger.json_logger import json_logger
+print("✓ Logger modules imported successfully")
 
-# Import telegram notifier functions from the local package
-from telegram import send_message, send_alert, send_match_alert, send_system_alert
+# Initialize or connect to JSON logger (optimized for async if available)
+json_logger_path = os.path.join(PROJECT_PATH, 'logs/matches.json')
+if not os.path.exists(os.path.join(PROJECT_PATH, 'logs')):
+    os.makedirs(os.path.join(PROJECT_PATH, 'logs'))
 
-# Import performance monitoring
+# Check if we should use async logging
+if ASYNC_LOGGING and AIOFILES_AVAILABLE and 'AsyncJsonLogger' in globals():
+    # Create async json logger
+    async_json_logger = AsyncJsonLogger(json_logger_path)
+    # Start the async logger worker in the event loop
+    if asyncio._get_running_loop() is not None:
+        asyncio.create_task(async_json_logger.start_worker())
+    else:
+        # We need a running event loop to start the worker
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(async_json_logger.start_worker())
+    json_logger = async_json_logger  # Use our async logger
+    if VERBOSE_OUTPUT:
+        print("✓ Using async file I/O for JSON logging")
+else:
+    # Fallback to standard logger
+    from logger.main_logger import get_logger
+    json_logger = get_logger('match_json', log_file=json_logger_path)
+
+# Import telegram notifier functions - this is truly optional
+try:
+    from telegram import send_message, send_alert, send_match_alert, send_system_alert
+    TELEGRAM_AVAILABLE = True
+    print("✓ Telegram notification system initialized")
+except Exception as e:
+    print(f"⚠️ Telegram import failed: {e}")
+    print("⚠️ Running without Telegram notification capability")
+
+# Import performance monitoring - optional module
 try:
     from tools.monitor_live import start_monitoring_thread
     # Start performance monitoring in background thread
@@ -90,24 +709,28 @@ try:
 except ImportError:
     print("Performance monitoring module not found - continuing without monitoring")
 
-import asyncio
-import aiohttp
-import requests  # Still needed for telegram_listener and other non-async functions
-import time
-import sys
-import traceback
-import argparse
-import datetime
-import pytz
-import signal
-import threading
-import os
-import fcntl
-import atexit
-from logger.db_api import supabase  # Import supabase client directly
+# Import asyncio-related modules
+try:
+    # asyncio should be imported already by the global error handler setup
+    import aiohttp
+    print("✓ Core async libraries imported successfully")
+except Exception as e:
+    # This is critical as the application cannot function without aiohttp
+    error_msg = f"CRITICAL: Async library import failed: {e}"
+    print(f"❌ {error_msg}")
+    # We don't need to set up the async handler again - it's already done at the top of the file
+    # Don't check TELEGRAM_AVAILABLE - just try the import directly
+    try:
+        from telegram import send_system_alert
+        send_alert_with_backpressure(error_msg, alert_type="critical", error_details=str(e))
+    except Exception as alert_err:
+        print(f"❌ Could not send Telegram alert: {alert_err}")
+# Removed the second import of supabase from logger.db_api
 
 # Record when the script started
 START_TIME = datetime.datetime.now()
+# Set metrics startup time
+Metrics.startup_time = START_TIME
 
 # API credentials
 USER = "thenecpt"
@@ -147,12 +770,41 @@ def generate_match_summary_text(match_data, formatted_odds):
 
     return "\n".join(lines)
 
-async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict):
+async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict) -> dict:
     """
     Helper function to fetch JSON data from an API endpoint
     """
-    async with session.get(url, params=params, raise_for_status=True) as resp:
-        return await resp.json()
+    # More robust fetch with retries and better error handling
+    retries = MAX_RETRIES  # From environment variable
+    last_error = None
+    
+    # Track API metrics
+    Metrics.api_requests += 1
+    
+    for attempt in range(retries):
+        try:
+            if attempt > 0:
+                Metrics.api_retries += 1
+                if VERBOSE_OUTPUT:
+                    print(f"Retry attempt {attempt} for {url}")
+                
+            async with session.get(url, params=params) as resp:
+                if resp.status == 200:
+                    return await resp.json()
+                else:
+                    error_text = await resp.text()
+                    raise Exception(f"HTTP {resp.status}: {error_text[:100]}")
+                    
+        except Exception as e:
+            last_error = e
+            # Exponential backoff between retries
+            if attempt < retries - 1:
+                # Use configurable backoff factor
+                await asyncio.sleep(RETRY_BACKOFF ** attempt)
+    
+    # If we get here, all retries failed
+    Metrics.api_failures += 1
+    raise Exception(f"Failed after {retries} attempts: {last_error}")
 
 async def fetch_live_matches(session):
     """
@@ -306,9 +958,11 @@ def get_weather_description(weather_code):
     
     return weather_codes.get(code, f"Unknown ({code})")
 
+@functools.lru_cache(maxsize=32)
 def celsius_to_fahrenheit(celsius_str):
     """
     Convert celsius temperature string to fahrenheit
+    Cached for improved performance on repeated lookups
     """
     try:
         # Extract numeric part from temperature string (e.g., "20°C" -> "20")
@@ -319,16 +973,24 @@ def celsius_to_fahrenheit(celsius_str):
     except (ValueError, AttributeError):
         return celsius_str  # Return original if conversion fails
 
+@functools.lru_cache(maxsize=32)
 def meters_per_second_to_mph(mps_str):
     """
     Convert wind speed from m/s to mph
+    Cached for improved performance on repeated lookups
     """
     try:
-        # Extract numeric part from wind string (e.g., "2.0m/s" -> "2.0")
-        mps_value = float(mps_str.replace('m/s', '').strip())
-        # Convert to mph: 1 m/s = 2.237 mph
-        mph_value = mps_value * 2.237
-        return f"{mph_value:.1f} mph"
+        # Use precompiled regex to extract numeric part (e.g., "2.0m/s" -> "2.0")
+        match = WIND_VALUE_PATTERN.search(mps_str)
+        if match:
+            wind_value = match.group(1)
+        else:
+            # Fallback to old method if regex doesn't match
+            wind_value = mps_str.replace("m/s", "").strip()
+            
+        wind_ms = float(wind_value)
+        wind_mph = wind_ms * 2.237
+        return f"{wind_value}m/s ({wind_mph:.1f} mph)"
     except (ValueError, AttributeError):
         return mps_str  # Return original if conversion fails
 
@@ -818,9 +1480,11 @@ def format_odds_display(formatted_odds):
     
     return "\n".join(output_lines)
 
+@functools.lru_cache(maxsize=32)
 def get_status_description(status_id):
     """
     Convert numeric status_id to a human-readable description
+    Cached for improved performance on repeated lookups
     """
     status_mapping = {
         "1": "Not started",
@@ -840,19 +1504,22 @@ def get_status_description(status_id):
     }
     
     # Handle both string and integer status codes
-    if isinstance(status_id, int):
+    if isinstance(status_id, str) and status_id.isdigit():
+        code = status_id
+    elif isinstance(status_id, int):
         code = str(status_id)
     else:
         code = str(status_id)
     
     return status_mapping.get(code, f"Unknown (ID: {code})")
 
+# Cache timezone object at module level to avoid repeated allocation
+EASTERN = pytz.timezone('America/New_York') if 'pytz' in sys.modules else None
+
+# Performance-critical helper functions
 def get_eastern_time():
-    """Get current time in Eastern timezone"""
-    utc_now = datetime.datetime.now(pytz.utc)
-    eastern = pytz.timezone('America/New_York')
-    eastern_time = utc_now.astimezone(eastern)
-    return eastern_time
+    """Convert current time to Eastern Time (ET) for standardized display"""
+    return datetime.datetime.now(pytz.utc).astimezone(EASTERN)
 
 def get_uptime_status():
     """Generate a formatted status message about the application's uptime"""
@@ -879,16 +1546,34 @@ def get_uptime_status():
     
     return message
 
-def handle_sigusr1(signum, frame):
+def handle_sigusr1(signum, frame) -> None:
     """Signal handler for SIGUSR1 to report uptime status via Telegram"""
+    # Include health metrics in the status report
+    metrics_report = Metrics.get_health_report()
     status_message = get_uptime_status()
-    send_system_alert(status_message)
+    
+    # Add metrics to the status message
+    status_message += "\n\n📊 <b>PERFORMANCE METRICS</b>\n"
+    status_message += f"DB Operations: {metrics_report['database']['operations']} "
+    status_message += f"(Success rate: {metrics_report['database']['success_rate']:.1%})\n"
+    status_message += f"API Requests: {metrics_report['api']['requests']} "
+    status_message += f"(Retry rate: {metrics_report['api']['retry_rate']:.1%})\n"
+    status_message += f"Alerts sent: {metrics_report['alerts']['sent']}\n"
+    status_message += f"Matches processed: {metrics_report['matches']['processed']}"
+    
+    if TELEGRAM_AVAILABLE:
+        # Use thread-safe semaphore for alert sending
+        send_alert_with_backpressure(status_message, "info")
 
 def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
     """
     Background thread that listens for status requests from Telegram
     Processes /status commands sent to the bot
     """
+    if not TELEGRAM_AVAILABLE:
+        print("Telegram listener not started - Telegram module not available")
+        return
+        
     telegram_url = f"https://api.telegram.org/bot{token}/getUpdates"
     offset = None
     
@@ -929,7 +1614,8 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
                                 print(f"[Telegram Listener] Status command received from authorized chat")
                                 status_message = get_uptime_status()
                                 print(f"[Telegram Listener] Sending status message: {status_message[:100]}...")
-                                send_system_alert(status_message)
+                                if TELEGRAM_AVAILABLE:
+                                    send_alert_with_backpressure(status_message, "info")
                             else:
                                 print(f"[Telegram Listener] Not a status command or unauthorized chat: '{message_text}' != '/status' or '{message_chat_id}' != '{chat_id}'")
                 else:
@@ -950,39 +1636,80 @@ async def main_async():
     """
     Main async function to fetch live matches and print match details with team names and competition country
     """
+    # Store the event loop globally for reuse during shutdown
+    global MAIN_EVENT_LOOP, HTTP_SESSION
+    MAIN_EVENT_LOOP = asyncio.get_running_loop()
+    
+    # Apply GC optimizations if enabled
+    if GC_TUNING_ENABLED and 'gc' in globals():
+        # Adjust GC thresholds for better performance in hot loops
+        current = gc.get_threshold()
+        gc.set_threshold(current[0]*3, current[1]*3, current[2]*3)
+        if VERBOSE_OUTPUT:
+            print(f"✓ Adjusted GC thresholds from {current} to {gc.get_threshold()}")
+    
+    # Parse command line arguments once at startup
+    continuous_mode = True  # Default to continuous mode
+    interval = DEFAULT_INTERVAL  # Default interval from environment variable
+    parser = argparse.ArgumentParser(description='Live Football Match Monitor')
+    parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
+    parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
+    args = parser.parse_args()
+    
+    if args.single:
+        continuous_mode = False
+    if args.interval:
+        interval = args.interval
+    
     try:
-        # Load countries first so we have them available for competition lookup
-        async with aiohttp.ClientSession() as session:
-            country_data = await fetch_country_data(session)
-            country_map = create_country_id_to_name_map(country_data)
+        # Create the connector now that we have a running event loop
+        if AIOHTTP_AVAILABLE:
+            conn = aiohttp.TCPConnector(**CONN_PARAMS)
+            timeout = aiohttp.ClientTimeout(**TIMEOUT_PARAMS)
+            # Initialize the shared session for reuse across the application
+            HTTP_SESSION = aiohttp.ClientSession(connector=conn, timeout=timeout)
+            if VERBOSE_OUTPUT:
+                print("✓ Created shared HTTP session with optimized parameters")
+        
+        # Use the shared HTTP session
+        # Try to load country data from cache first if entity caching is enabled
+        country_data = None
+        if ENABLE_ENTITY_CACHE:
+            cache_key = generate_cache_key('countries')
+            country_data = load_entity_cache(cache_key)
+            if country_data and VERBOSE_OUTPUT:
+                print(f"✓ Loaded {len(country_data)} countries from cache")
+        
+        # Fetch from API if not in cache
+        if not country_data:
+            country_data = await fetch_country_data(HTTP_SESSION)
+            if country_data and ENABLE_ENTITY_CACHE:
+                save_entity_cache(cache_key, country_data)
             
-            # Always run in continuous mode by default
-            continuous_mode = True
-            interval = 30  # Default interval in seconds
+        country_map = create_country_id_to_name_map(country_data)
             
-            # Check for command line arguments
-            parser = argparse.ArgumentParser(description='Live Football Match Monitor')
-            parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
-            parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
-            args = parser.parse_args()
+        # Run the fetch process in a loop if continuous mode is enabled
+        while True:
+            await process_live_matches_async(HTTP_SESSION, country_map)
             
-            if args.single:
-                continuous_mode = False
-            if args.interval:
-                interval = args.interval
-            
-            # Run the fetch process in a loop if continuous mode is enabled
-            while True:
-                await process_live_matches_async(session, country_map)
+            if not continuous_mode:
+                # If single-run mode, break after the first iteration
+                break
                 
-                if not continuous_mode:
-                    break
-                    
-                # Convert current time to Eastern Time (ET)
-                eastern_now = get_eastern_time()
+            # Convert current time to Eastern Time (ET)
+            eastern_now = get_eastern_time()
+            
+            # Use the logger for debug info instead of prints to avoid terminal output
+            # when verbose mode is disabled
+            if VERBOSE_OUTPUT:
                 print(f"\nWaiting {interval} seconds before next update at {eastern_now.strftime(CONSOLE_TIME_FORMAT)}...")
-                print(f"{'=' * 50}")
-                await asyncio.sleep(interval)
+                print(f"{'-' * 50}")
+            
+            # Wait for the next update cycle
+            await asyncio.sleep(interval)
+            
+            if VERBOSE_OUTPUT:
+                eastern_now = get_eastern_time()  # Update time after sleep
                 print(f"\n{'=' * 50}")
                 print(f"REFRESHING DATA AT: {eastern_now.strftime(CONSOLE_TIME_FORMAT)}")
                 print(f"{'=' * 50}\n")
@@ -992,19 +1719,39 @@ async def main_async():
     except Exception as e:
         print(f"Error in main function: {e}")
         traceback.print_exc()
+    finally:
+        # Ensure we close the shared HTTP session
+        if HTTP_SESSION and not HTTP_SESSION.closed:
+            if VERBOSE_OUTPUT:
+                print("Closing shared HTTP session...")
+            try:
+                asyncio.create_task(HTTP_SESSION.close())
+            except:
+                pass
 
 async def process_live_matches_async(session, country_map):
     """
     Process live matches and display their details using async batch fetching
     """
+    # Initialize batch array once at function start if batch inserts are enabled
+    if ENABLE_BATCH_INSERTS:
+        batch_matches = []
+        # Track the last time we flushed the database batch
+        if not hasattr(process_live_matches_async, 'last_db_flush_time'):
+            process_live_matches_async.last_db_flush_time = time.time()
+    
     # Fetch live matches
+    if VERBOSE_OUTPUT:
+        print("Fetching live matches data...")
     live_matches_data = await fetch_live_matches(session)
     if not live_matches_data or "results" not in live_matches_data:
         print("No live matches found.")
         # Add telegram alert for no matches found
         message = "⚠️ <b>ALERT: NO LIVE MATCHES FOUND</b>\n\nThe API returned no live matches, which is unusual and may indicate a problem with the API or the system. Please check the connection and API status."
-        send_system_alert(message)
-        return
+        if TELEGRAM_AVAILABLE:
+            send_alert_with_backpressure(message, "warning")
+        # Don't return any value - just return control to the caller
+        return None
     
     # Extract match IDs
     match_ids = extract_match_ids(live_matches_data)
@@ -1065,8 +1812,11 @@ async def process_live_matches_async(session, country_map):
     print(f"\n===== FOUND {len(match_ids)} LIVE FOOTBALL MATCHES =====\n")
     eastern_now = get_eastern_time()
     print(f"Last updated: {eastern_now.strftime(DATE_FORMAT)} {eastern_now.strftime(CONSOLE_TIME_FORMAT)}")
+    # Update metrics
+    Metrics.processed_matches += len(match_ids)
+    Metrics.last_refresh = datetime.datetime.now()
     
-    # Process each match ID
+    # Process each match in turn
     for i, match_id in enumerate(match_ids, 1):
         try:
             # Get match data from the live endpoint
@@ -1295,24 +2045,164 @@ async def process_live_matches_async(session, country_map):
                 "wind": wind_mph
             }
             
-            # ————————————————
-            # Emit a one-line JSON blob for alerts, flushing immediately to ensure prompt processing
-            print("▶️ PAYLOAD:", json.dumps(match_data, indent=2), flush=True)
-            response = supabase \
+            # Only log detailed JSON in verbose mode or limit by rate
+            if VERBOSE_OUTPUT or (i % JSON_LOG_RATE == 0):  # Log every Nth match based on config
+                # Use optimized JSON serialization
+                serialized_data = json_dumps(match_data)
+                
+                # Handle async vs synchronous logging
+                if ASYNC_LOGGING and AIOFILES_AVAILABLE and isinstance(json_logger, AsyncJsonLogger):
+                    # Queue for async writing to avoid blocking
+                    asyncio.create_task(json_logger.debug(serialized_data))
+                else:
+                    # Use standard synchronous logger
+                    json_logger.debug(serialized_data)
+
+            # Insert into archived_json as before
+            response = None
+
+            # Store if we have a working Supabase connection
+            if SUPABASE_AVAILABLE:
+                try:
+                    from supabase_config import supabase
+                    
+                    # Decide between single and batch inserts
+                    if ENABLE_BATCH_INSERTS:
+                        # Add to batch for bulk insert (we already initialized batch_matches at function start)
+                        batch_matches.append(match_data)
+                        
+                        # Calculate time since last flush
+                        time_since_flush = time.time() - process_live_matches_async.last_db_flush_time
+                        
+                        # Perform batch insert when:
+                        # 1. We've collected enough records, OR
+                        # 2. This is the last match, OR
+                        # 3. It's been too long since last flush (time-based flushing)
+                        if (len(batch_matches) >= DB_BATCH_SIZE or 
+                            i == len(match_ids) or 
+                            time_since_flush >= DB_FLUSH_INTERVAL):
+                            if VERBOSE_OUTPUT:
+                                print(f"Performing batch insert of {len(batch_matches)} records")
+                                
+                            # Use thread-safe semaphore for DB operations - don't peek at internal _value
+                            acquired = DB_SEMAPHORE.acquire(blocking=False)
+                            if acquired:
+                                try:
+                                    Metrics.db_operations += len(batch_matches)
+                                    # Create the batch insert payload
+                                    batch_payload = [{"raw_json": match} for match in batch_matches]
+                                    response = supabase \
+                                    .table("archived_json") \
+                                    .insert(batch_payload) \
+                                    .execute()
+                                    Metrics.db_successes += len(batch_matches)
+                                    # Clear the batch after successful insert
+                                    batch_matches = []
+                                except Exception as e:
+                                    error_msg = f"Failed to batch insert {len(batch_matches)} matches: {str(e)}"
+                                    if VERBOSE_OUTPUT:
+                                        print(f"⚠️ {error_msg}")
+                                    # Use our thread-safe helper function
+                                    send_alert_with_backpressure(
+                                        f"Batch database operation failed for {len(batch_matches)} matches",
+                                        alert_type="warning",
+                                        error_details=error_msg
+                                    )
+                                    Metrics.db_failures += len(batch_matches)
+                                    # Fall back to individual inserts on batch failure
+                                    if VERBOSE_OUTPUT:
+                                        print("Falling back to individual inserts")
+                                    for single_match in batch_matches:
+                                        try:
+                                            Metrics.db_operations += 1
+                                            supabase.table("archived_json").insert({"raw_json": single_match}).execute()
+                                            Metrics.db_successes += 1
+                                        except Exception as e2:
+                                            Metrics.db_failures += 1
+                                            if VERBOSE_OUTPUT:
+                                                print(f"Failed individual insert: {e2}")
+                                    batch_matches = []
+                                finally:
+                                    DB_SEMAPHORE.release()
+                            else:
+                                # We couldn't acquire the semaphore, so we'll skip this batch
+                                if VERBOSE_OUTPUT:
+                                    print("Skipping batch DB insert due to back-pressure")
+                                Metrics.db_skipped += len(batch_matches)
+                    else:
+                        # Traditional single-record insert
+                        # Use thread-safe semaphore for DB operations
+                        if hasattr(DB_SEMAPHORE, '_value') and DB_SEMAPHORE._value > 0:
+                            acquired = DB_SEMAPHORE.acquire(blocking=False)
+                            if acquired:
+                                try:
+                                    Metrics.db_operations += 1
+                                    response = supabase \
+                                    .table("archived_json") \
+                                    .insert({"raw_json": match_data}) \
+                                    .execute()
+                                    Metrics.db_successes += 1
+                                finally:
+                                    DB_SEMAPHORE.release()
+                            elif VERBOSE_OUTPUT:
+                                print("Skipping DB insert due to back-pressure (too many concurrent operations)")
+                            Metrics.db_skipped += 1
+                        else:
+                            # Fallback if _value not accessible - just try to execute
+                            response = supabase \
+                            .table("archived_json") \
+                            .insert({"raw_json": match_data}) \
+                            .execute()
+                except Exception as e:
+                    error_msg = f"Failed to insert match data: {str(e)}"
+                    if VERBOSE_OUTPUT:
+                        print(f"⚠️ {error_msg}")
+                        
+                    # Use our thread-safe helper function
+                    send_alert_with_backpressure(
+                        f"Database operation failed for match {match_data.get('id', 'unknown')}",
+                        alert_type="warning",  # Downgraded from error as this is non-critical
+                        error_details=error_msg
+                    )
+            else:
+                # Fallback if _value not accessible - just try to execute
+                response = supabase \
                 .table("archived_json") \
                 .insert({"raw_json": match_data}) \
                 .execute()
-            if getattr(response, "error", None):
-                print("   ❌ INSERT FAILED:", response.error, flush=True)
-            else:
-                print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
-            # ————————————————
+    except Exception as e:
+        error_msg = f"Failed to insert match data: {str(e)}"
+        if VERBOSE_OUTPUT:
+            print(f"⚠️ {error_msg}")
 
-            print("\n")
-        except Exception as e:
-            print(f"Error processing match {match_id}: {str(e)}")
-            traceback.print_exc()
-            continue
+        # Use our thread-safe helper function
+        send_alert_with_backpressure(
+            f"Database operation failed for match {match_data.get('id', 'unknown')}",
+            alert_type="warning",  # Downgraded from error as this is non-critical
+            error_details=error_msg
+        )
+        # Track DB metrics
+        Metrics.db_failures += 1
+    
+    # Check response status after all database operations
+    if getattr(response, "error", None):
+        print("   ❌ INSERT FAILED:", response.error, flush=True)
+    elif response and hasattr(response, 'data') and response.data:
+        print("   ✅ Inserted, DB row id:", response.data[0]["id"], flush=True)
+    else:
+        print("   ✅ Insert successful, but no response data available", flush=True)
+                
+                print("\n")
+            except Exception as e:
+                print(f"Error processing match {match_id}: {str(e)}")
+                traceback.print_exc()
+                continue
+    
+    # Print a footer
+    print(f"{'=' * 50}")
+    print(f"END OF LIVE MATCH DATA - {len(match_ids)} MATCHES DISPLAYED")
+    print(f"{'=' * 50}")
+    print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
     
     # Print a footer
     print(f"{'=' * 50}")
@@ -1320,7 +2210,72 @@ async def process_live_matches_async(session, country_map):
     print(f"{'=' * 50}")
     print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
 
+# Integration with automated testing
+def run_smoke_test() -> bool:
+    """Run smoke tests to verify critical functionality
+    
+    Returns True if all tests pass, False otherwise
+    """
+    try:
+        from combined_failure_test import run_tests
+        results = run_tests()
+        return results['success']
+    except Exception as e:
+        print(f"Failed to run smoke tests: {e}")
+        return False
+
+# Health check endpoint for monitoring
+def get_health_check() -> dict:
+    """Return health check information for monitoring systems"""
+    health = {
+        "status": "healthy",
+        "uptime_seconds": (datetime.datetime.now() - START_TIME).total_seconds() if 'START_TIME' in globals() else 0,
+        "metrics": Metrics.get_health_report() if 'Metrics' in globals() else {}
+    }
+    
+    # Add optimization flags
+    health["optimizations"] = {
+        "orjson": "_json" in globals() and globals()["_json"] != json,
+        "uvloop": "uvloop" in sys.modules,
+        "async_logging": ASYNC_LOGGING and AIOFILES_AVAILABLE,
+        "batch_inserts": ENABLE_BATCH_INSERTS,
+        "lru_cache": "functools" in sys.modules,
+        "batch_size": DB_BATCH_SIZE if ENABLE_BATCH_INSERTS else None,
+    }
+    
+    return health
+
 if __name__ == "__main__":
+    # Add profiling instrumentation if requested
+    PROFILING_ENABLED = os.environ.get('SPORTS_BOT_ENABLE_PROFILING', 'false').lower() == 'true'
+    if PROFILING_ENABLED:
+        try:
+            import cProfile
+            profiler = cProfile.Profile()
+            profiler.enable()
+            print("✓ Profiling enabled - results will be saved at exit")
+            
+            # Register function to save profiling results
+            def save_profile_results():
+                """Save profiling results to a file"""
+                if 'profiler' in globals():
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    profile_path = os.path.join(PROJECT_PATH, f'logs/profile_{timestamp}.prof')
+                    profiler.disable()
+                    profiler.dump_stats(profile_path)
+                    print(f"\n✓ Profiling results saved to {profile_path}")
+                    # Print top 10 functions by cumulative time
+                    import pstats
+                    from io import StringIO
+                    s = StringIO()
+                    ps = pstats.Stats(profiler, stream=s).sort_stats('cumulative')
+                    ps.print_stats(10)
+                    print(s.getvalue())
+                    
+            atexit.register(save_profile_results)
+        except ImportError:
+            print("⚠️ Profiling requested but cProfile module not available")
+    
     # Create a lock file to ensure only one instance runs at a time
     lock_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "live.lock")
     lock_file = open(lock_file_path, "w")
@@ -1338,22 +2293,46 @@ if __name__ == "__main__":
         
         # Send startup notification to Telegram
         startup_message = f"🚀 <b>LIVE.PY STARTED</b>\n\nThe live data collection system has been started successfully."
-        send_system_alert(startup_message)
+        if TELEGRAM_AVAILABLE:
+            send_system_alert(startup_message, alert_type="info")
         
         # Register a cleanup handler to notify on shutdown
         import atexit
+        # Define function to safely shutdown async logger
+        def _shutdown_loggers():
+            """Ensure async logger flushes all queued messages before exit"""
+            if ASYNC_LOGGING and AIOFILES_AVAILABLE and 'json_logger' in globals():
+                if isinstance(json_logger, AsyncJsonLogger):
+                    try:
+                        # Block briefly to let in-flight writes finish
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        loop.run_until_complete(json_logger.shutdown())
+                        loop.close()
+                        print("✓ Flushed async logger queues before exit")
+                    except Exception as e:
+                        print(f"Warning: Error during logger shutdown: {e}")
+        
         def exit_handler():
             exit_message = f"⛔ <b>LIVE.PY STOPPED</b>\n\nThe live data collection system has been stopped."
             try:
-                send_system_alert(exit_message)
+                # First shutdown any async loggers to flush queued messages
+                _shutdown_loggers()
+                
+                # Then send exit notifications and cleanup
+                if TELEGRAM_AVAILABLE:
+                    send_system_alert(exit_message, alert_type="info")
+                
                 # Release lock and close file
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
                 lock_file.close()
+                
                 # Remove lock file on clean exit
                 if os.path.exists(lock_file_path):
                     os.remove(lock_file_path)
-            except:
-                pass  # Ensure no exceptions break the exit process
+            except Exception as e:
+                print(f"Warning: Error during exit cleanup: {e}")
+                # Continue exit process despite any errors
         atexit.register(exit_handler)
         
         # Start Telegram listener thread
