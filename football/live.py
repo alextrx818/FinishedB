@@ -8,6 +8,26 @@ SUPABASE_AVAILABLE = False  # Flag for availability of database features
 ALERT_SYSTEM_AVAILABLE = False  # Flag for availability of alert system
 VERBOSE_OUTPUT = False     # Flag for verbose logging (set via command line)
 
+# -------------------------------------------------------------------
+# FORMATTING FIX - 2025-05-10
+# Completely suppress duplicate console output from Python's logging system
+# that conflicts with our custom main_logger.py beautiful formatting
+# -------------------------------------------------------------------
+import logging
+
+# Create a NullHandler that won't output anything to the console
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+# Configure the root logger to use our NullHandler instead of logging to console
+logging.basicConfig(handlers=[NullHandler()])
+
+# Get the logger for this module and ensure it doesn't propagate to parent loggers
+logger = logging.getLogger(__name__)
+logger.propagate = False
+# -------------------------------------------------------------------
+
 # ======== CONFIGURABLE SETTINGS ========
 # Load configuration from environment variables with reasonable defaults
 import os
@@ -2118,7 +2138,7 @@ async def process_live_matches_async(session, country_map):
                     triggered_alerts = [module for module, triggered in alert_results.items() if triggered]
                     if triggered_alerts and VERBOSE_OUTPUT:
                         print(f"✓ Alerts triggered for match {match_id}: {', '.join(triggered_alerts)}")
-                        
+                    
                 except Exception as e:
                     error_msg = f"Error in alert system for match {match_id}: {str(e)}"
                     print(f"⚠️ {error_msg}")

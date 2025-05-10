@@ -890,6 +890,87 @@ def discover_alert_modules() -> Dict[str, Any]:
     print(f"Alert system discovered {len(loaded_alert_modules)} alert modules")
     return loaded_alert_modules
 
+def send_sports_alert(module_name: str, match_data: Dict[str, Any]) -> bool:
+    """
+    Send a sports alert to Telegram based on an alert module trigger.
+    
+    Args:
+        module_name: Name of the triggered alert module
+        match_data: Current match data dictionary
+        
+    Returns:
+        True if alert was sent successfully, False otherwise
+    """
+    try:
+        # Extract needed fields from match_data
+        match_id = match_data.get('id', 'unknown')
+        home_team = match_data.get('home_team', 'Home Team')
+        away_team = match_data.get('away_team', 'Away Team')
+        competition = match_data.get('competition', 'Unknown Competition')
+        country = match_data.get('country', '')
+        home_score = match_data.get('home_score', '0')
+        away_score = match_data.get('away_score', '0')
+        
+        # Get odds data for specialized alerts
+        ou_line = match_data.get('ou_line')
+        ou_over = match_data.get('ou_over')
+        ou_under = match_data.get('ou_under')
+        ml_home = match_data.get('ml_home')
+        ml_draw = match_data.get('ml_draw')
+        ml_away = match_data.get('ml_away')
+        
+        # Format alert message
+        alert_message = f"⚽ SPORTS ALERT: {module_name}\n\n"
+        alert_message += f"Match: {home_team} vs {away_team}\n"
+        alert_message += f"Competition: {competition} {f'({country})' if country else ''}\n"
+        alert_message += f"Current Score: {home_score} - {away_score}\n\n"
+        
+        # Add odds data based on the alert type
+        if "overunder" in module_name.lower() and ou_line is not None:
+            alert_message += f"Over/Under Line: {ou_line}\n"
+            if ou_over is not None:
+                alert_message += f"Over: {format_american_odds(ou_over)}\n"
+            if ou_under is not None:
+                alert_message += f"Under: {format_american_odds(ou_under)}\n"
+        elif "odds" in module_name.lower():
+            # Add money line odds
+            if ml_home is not None and ml_away is not None:
+                alert_message += f"ML Home: {format_american_odds(ml_home)}\n"
+                alert_message += f"ML Away: {format_american_odds(ml_away)}\n"
+                if ml_draw is not None:
+                    alert_message += f"ML Draw: {format_american_odds(ml_draw)}\n"
+        
+        # Add match ID for reference
+        alert_message += f"\nMatch ID: {match_id}"
+        
+        # Attempt to send via Telegram
+        try:
+            # First try direct import (if this module is imported directly)
+            from football.telegram import send_match_alert as football_send_match_alert
+            send_match_alert = football_send_match_alert
+        except ImportError:
+            # Fall back to global import (if imported through other means)
+            try:
+                from telegram import send_match_alert
+            except ImportError:
+                print(f"[SPORTS_ALERT] Could not import Telegram module, alert not sent: {module_name}")
+                return False
+        
+        # Send to Telegram using match alert type
+        send_match_alert(
+            message=f"{module_name} detected",
+            match_id=match_id,
+            teams=f"{home_team} vs {away_team}",
+            score=f"{home_score} - {away_score}",
+            competition=competition,
+            alert_type="odds" if "odds" in module_name.lower() else "match"
+        )
+        return True
+    except Exception as e:
+        print(f"[SPORTS_ALERT] Error sending alert for {module_name}: {str(e)}")
+        return False
+
+
 def process_match_with_alerts(match_data: Dict[str, Any], previous_data: Optional[Dict[str, Any]] = None) -> Dict[str, bool]:
     """
     Process a match through all loaded alert modules.
@@ -913,9 +994,19 @@ def process_match_with_alerts(match_data: Dict[str, Any], previous_data: Optiona
     # Track which modules triggered alerts
     results = {}
     
-    # We don't use Telegram directly - alerts are just reported back to live.py
-    # This keeps separation between sports alerts and system alerts
+    # Check if Telegram is available - try both direct and indirect import paths
     telegram_available = False
+    try:
+        # First try direct import (if this module is imported directly)
+        from football.telegram import send_match_alert as football_send_match_alert
+        telegram_available = True
+    except ImportError:
+        # Fall back to global import (if imported through other means)
+        try:
+            from telegram import send_match_alert
+            telegram_available = True
+        except ImportError:
+            telegram_available = False
     
     # Process match through each alert module
     for module_name, module in loaded_alert_modules.items():
@@ -933,15 +1024,18 @@ def process_match_with_alerts(match_data: Dict[str, Any], previous_data: Optiona
             
             results[module_name] = triggered
             
-            # If alert was triggered, log for debugging purposes only
-            if triggered and __debug__:
+            # If alert was triggered, log and send notification
+            if triggered:
                 match_id = match_data.get('id', 'unknown')
                 home_team = match_data.get('home_team', 'Home')
                 away_team = match_data.get('away_team', 'Away')
+                
+                # Log the alert trigger
                 print(f"[SPORTS_ALERT] {module_name} triggered for {home_team} vs {away_team} (ID: {match_id})")
                 
-                # We just report the alert back to live.py via the return value
-                # live.py is responsible for all alert handling and channel selection
+                # Send the alert to Telegram if available
+                if telegram_available:
+                    send_sports_alert(module_name, match_data)
             
         except Exception as e:
             # Just log the error without using system alert channels
