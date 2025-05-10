@@ -134,7 +134,9 @@ def process_log_chunk(chunk):
             # Check for missing environment data
             if "No environment data available for this match" in env_text:
                 print(f"DETECTED: Missing environment data for {match_id}")
-                send_alert('environment', match_id, teams, competition)
+                # Environment alerts are now handled by the live_alerts/consolidated_env_alert.py module
+                # which consolidates them and sends once every 30 minutes
+                print(f"Environment alert for {match_id} will be handled by the consolidated env alert module")
             else:
                 print(f"Environment data present for {match_id}")
         else:

@@ -147,6 +147,9 @@ original_print = builtins.print
 # Add a one-time debug print to show the LOG_FILE_PATH
 original_print("LOG FILE PATH →", LOG_FILE_PATH)
 
+# Ensure smooth scrolling is enabled to prevent auto-scrolling while viewing log files
+SMOOTH_SCROLLING = True  # This ensures the log file doesn't auto-scroll when viewed
+
 # Define the database listener function using Supabase client
 def send_to_db(chunk: str):
     """Send log chunk to Supabase database using Python client"""
