@@ -5,6 +5,7 @@
 # These will be properly set later during actual imports
 TELEGRAM_AVAILABLE = False  # Flag for availability of Telegram notifications
 SUPABASE_AVAILABLE = False  # Flag for availability of database features
+ALERT_SYSTEM_AVAILABLE = False  # Flag for availability of alert system
 VERBOSE_OUTPUT = False     # Flag for verbose logging (set via command line)
 
 # ======== CONFIGURABLE SETTINGS ========
@@ -670,6 +671,9 @@ break the logger system in unexpected ways.
 SUPABASE_AVAILABLE = False  # Set by the Supabase import block
 TELEGRAM_AVAILABLE = False  # Set by the Telegram import block
 
+# Alert system availability flag
+ALERT_SYSTEM_AVAILABLE = False  # Will be set to True if alert_system module is available
+
 # Import logger modules
 # These are expected to be present, and failures will be caught by the global hook
 import logger.main_logger
@@ -712,6 +716,18 @@ try:
 except Exception as e:
     print(f"⚠️ Telegram import failed: {e}")
     print("⚠️ Running without Telegram notification capability")
+
+# Import alert system - this is optional but highly recommended
+try:
+    import traceback  # For detailed error logging in alert system
+    from live_alerts.alert_system import process_match_with_alerts, discover_alert_modules, reset_alert_caches
+    # Initialize the alert system by discovering all available alert modules
+    alert_modules = discover_alert_modules()
+    print(f"✓ Alert system loaded successfully with {len(alert_modules)} alert modules")
+    ALERT_SYSTEM_AVAILABLE = True
+except Exception as e:
+    print(f"⚠️ Alert system import failed: {e}")
+    print("⚠️ Running without alert system capability")
 
 # Import performance monitoring - optional module
 try:
@@ -1647,11 +1663,15 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
 
 async def main_async():
     """
-    Main async function to fetch live matches and print match details with team names and competition country
+    Main async function with match processing loop
     """
-    # Store the event loop globally for reuse during shutdown
-    global MAIN_EVENT_LOOP, HTTP_SESSION
-    MAIN_EVENT_LOOP = asyncio.get_running_loop()
+    global HTTP_SESSION, MAIN_EVENT_LOOP
+    
+    # Dictionary to track previous match states for comparison
+    previous_matches = {}
+    
+    # Store main event loop for cleanup during shutdown
+    MAIN_EVENT_LOOP = asyncio.get_event_loop()
     
     # Apply GC optimizations if enabled
     if GC_TUNING_ENABLED and 'gc' in globals():
@@ -1750,6 +1770,10 @@ async def process_live_matches_async(session, country_map):
     db_status_shown = False  # Track if we've shown DB status for this fetch
     matches_processed = 0    # Count of matches processed in this cycle
     match_errors = []       # Collect match errors for consolidated reporting
+    
+    # Initialize or access previous match data dictionary for alert system
+    if not hasattr(process_live_matches_async, 'previous_matches'):
+        process_live_matches_async.previous_matches = {}
     
     # Initialize batch array once at function start if batch inserts are enabled
     if ENABLE_BATCH_INSERTS:
@@ -2075,6 +2099,31 @@ async def process_live_matches_async(session, country_map):
                 else:
                     # Use standard synchronous logger
                     json_logger.debug(serialized_data)
+
+            # Process through alert system if available
+            if ALERT_SYSTEM_AVAILABLE:
+                try:
+                    # Get previous match data if available
+                    previous_match = None
+                    if match_id in process_live_matches_async.previous_matches:
+                        previous_match = process_live_matches_async.previous_matches[match_id]
+                    
+                    # Process match through all alert modules
+                    alert_results = process_match_with_alerts(match_data, previous_match)
+                    
+                    # Store current match data for future comparison
+                    process_live_matches_async.previous_matches[match_id] = match_data.copy()
+                    
+                    # Log alert results if any were triggered
+                    triggered_alerts = [module for module, triggered in alert_results.items() if triggered]
+                    if triggered_alerts and VERBOSE_OUTPUT:
+                        print(f"✓ Alerts triggered for match {match_id}: {', '.join(triggered_alerts)}")
+                        
+                except Exception as e:
+                    error_msg = f"Error in alert system for match {match_id}: {str(e)}"
+                    print(f"⚠️ {error_msg}")
+                    if VERBOSE_OUTPUT:
+                        traceback.print_exc()
 
             # Insert into archived_json as before
             response = None
