@@ -2384,6 +2384,28 @@ if __name__ == "__main__":
         telegram_thread.daemon = True  # Allow main thread to exit even if this thread is still running
         telegram_thread.start()
         
+        # Start match data monitor in a separate thread
+        try:
+            import importlib.util
+            # Import the match data monitor dynamically
+            spec = importlib.util.spec_from_file_location(
+                "match_data_monitor", 
+                os.path.join(os.path.dirname(__file__), "telegram", "match_data_monitor.py")
+            )
+            monitor_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(monitor_module)
+            
+            # Start the monitor in a thread
+            data_monitor_thread = threading.Thread(
+                target=monitor_module.main,
+                daemon=True,
+                name="MatchDataMonitor"
+            )
+            data_monitor_thread.start()
+            print("✓ Match data monitor started in background")
+        except Exception as e:
+            print(f"⚠️ Could not start match data monitor: {e}")
+        
         asyncio.run(main_async())
         
     except IOError:
