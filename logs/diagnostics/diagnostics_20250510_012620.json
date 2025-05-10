@@ -1,0 +1,129 @@
+{
+  "api": [
+    {
+      "name": "api_credentials",
+      "passed": true,
+      "message": "API credentials found in live.py",
+      "details": {
+        "user": "the..."
+      },
+      "timestamp": "2025-05-10T01:26:18.886713"
+    },
+    {
+      "name": "api_country/list",
+      "passed": true,
+      "message": "API endpoint is functioning correctly",
+      "details": {
+        "sample_keys": [
+          "code",
+          "results"
+        ]
+      },
+      "timestamp": "2025-05-10T01:26:19.416470"
+    },
+    {
+      "name": "api_match/detail_live",
+      "passed": true,
+      "message": "API endpoint is functioning correctly",
+      "details": {
+        "sample_keys": [
+          "code",
+          "results"
+        ]
+      },
+      "timestamp": "2025-05-10T01:26:19.824401"
+    }
+  ],
+  "database": [
+    {
+      "name": "db_connection",
+      "passed": true,
+      "message": "Successfully connected to Supabase",
+      "details": {
+        "count": 2940
+      },
+      "timestamp": "2025-05-10T01:26:20.695612"
+    }
+  ],
+  "telegram": [
+    {
+      "name": "telegram_credentials",
+      "passed": true,
+      "message": "Telegram credentials are properly configured",
+      "details": {
+        "token_prefix": "77649539...",
+        "chat_id_prefix": "6128..."
+      },
+      "timestamp": "2025-05-10T01:26:20.697097"
+    },
+    {
+      "name": "match_monitor",
+      "passed": true,
+      "message": "Match data monitor is properly configured",
+      "details": {
+        "detected_patterns": [
+          "match_start",
+          "match_id",
+          "teams",
+          "competition",
+          "empty_env",
+          "empty_ml",
+          "empty_spread",
+          "empty_total"
+        ]
+      },
+      "timestamp": "2025-05-10T01:26:20.810119"
+    }
+  ],
+  "logger": [
+    {
+      "name": "logger_file",
+      "passed": true,
+      "message": "Logger file exists and is writable",
+      "details": {
+        "path": "/root/CascadeProjects/sports_bot/football/logger/main.logger",
+        "size_mb": 0.54,
+        "last_modified": "2025-05-10 00:58:23",
+        "age_days": 0.02
+      },
+      "timestamp": "2025-05-10T01:26:20.810224"
+    },
+    {
+      "name": "log_rotation",
+      "passed": true,
+      "message": "Log rotation is properly configured",
+      "details": {
+        "rotated_files_count": 3,
+        "rotated_files": [
+          "main.logger.2025-05-04",
+          "main.logger.2025-05-05",
+          "main.logger.2025-05-06"
+        ]
+      },
+      "timestamp": "2025-05-10T01:26:20.810389"
+    }
+  ],
+  "integration": [
+    {
+      "name": "live_py_exists",
+      "passed": true,
+      "message": "live.py exists but is not executable",
+      "details": {
+        "path": "/root/CascadeProjects/sports_bot/football/live.py",
+        "executable": false,
+        "size_kb": 104.93
+      },
+      "timestamp": "2025-05-10T01:26:20.810451"
+    },
+    {
+      "name": "monitor_integration",
+      "passed": true,
+      "message": "Match data monitor is properly integrated with live.py",
+      "details": {
+        "has_import": true,
+        "has_thread": true
+      },
+      "timestamp": "2025-05-10T01:26:20.811492"
+    }
+  ]
+}
