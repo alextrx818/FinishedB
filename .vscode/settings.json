@@ -1,0 +1,26 @@
+{
+  // Don't watch or index anything under venv/
+  "files.watcherExclude": {
+    "**/venv/**": true,
+    "**/football/Formatter/venv/**": true
+  },
+  // Don't search inside venv/, either
+  "search.exclude": {
+    "**/venv/**": true,
+    "**/football/Formatter/venv/**": true
+  },
+  // Python-specific settings
+  "python.analysis.extraPaths": [
+    "/root/CascadeProjects/sports_bot"
+  ],
+  // Exclude venv from linting
+  "python.linting.ignorePatterns": [
+    "**/venv/**"
+  ],
+  // Editor performance optimizations
+  "editor.formatOnSave": false,
+  // Disable auto-fetching type information for performance
+  "python.analysis.indexing": false,
+  // Telemetry settings
+  "telemetry.telemetryLevel": "off"
+}
