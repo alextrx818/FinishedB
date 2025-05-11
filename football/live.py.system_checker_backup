@@ -9,19 +9,15 @@
 # always run with these environment variables:
 #
 # SPORTS_BOT_DB_CONCURRENCY=2
-# SPORTS_BOT_ALERT_CONCURRENCY=4  # Increased to 4 for multiple alert modules
+# SPORTS_BOT_ALERT_CONCURRENCY=2
 # SPORTS_BOT_CONN_LIMIT=5
 # SPORTS_BOT_HOST_LIMIT=2
 # SPORTS_BOT_GC_TUNING=true
 #
-# IMPORTANT 2025-05-11: These settings are REQUIRED when using Python 3.12.3
-# to prevent memory issues. Python 3.12.3 has different memory management
-# characteristics and will run out of memory without these optimizations.
-#
 # EXAMPLE COMMAND:
 # cd /root/CascadeProjects/sports_bot/football && \
 #   SPORTS_BOT_DB_CONCURRENCY=2 \
-#   SPORTS_BOT_ALERT_CONCURRENCY=4 \
+#   SPORTS_BOT_ALERT_CONCURRENCY=2 \
 #   SPORTS_BOT_CONN_LIMIT=5 \
 #   SPORTS_BOT_HOST_LIMIT=2 \
 #   SPORTS_BOT_GC_TUNING=true \
@@ -661,8 +657,15 @@ except ImportError:
 print("🔍 DEBUG — CWD:", os.getcwd())
 print("🔍 DEBUG — PYTHONPATH:", os.getenv("PYTHONPATH"))
 
-# System verification removed (05/11/2025)
-# Previous system verification code has been removed as part of system cleanup
+# Run system module verification - this sends alerts for failures but allows the program to continue
+try:
+    from football.alerts import verify_system
+    print("Running system module verification...")
+    verify_system()
+    print("System verification completed")
+except Exception as e:
+    print(f"⚠️ System verification error: {e} - continuing anyway")
+    # We continue even if verification itself fails
 
 """
 Sports Bot - Live Match Processing System
@@ -1816,8 +1819,110 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
             time.sleep(10)
 
 # Function to monitor system resources and performance in real-time
-# Diagnostic monitor has been removed to improve startup performance
-# and avoid memory usage
+def run_diagnostic_monitor():
+    """Run a continuous diagnostic monitor that tracks system resources and
+    logs information to help diagnose crashes or performance issues.
+    This runs in a separate thread to avoid interfering with the main process.
+    """
+    diagnostic_log = os.path.join(os.path.dirname(os.path.abspath(__file__)), "diagnostics", "live_monitor.log")
+    # Create diagnostics directory if it doesn't exist
+    os.makedirs(os.path.dirname(diagnostic_log), exist_ok=True)
+    
+    # Initialize log file with header
+    try:
+        with open(diagnostic_log, 'w') as f:
+            f.write(f"===== DIAGNOSTIC MONITORING STARTED AT {datetime.datetime.now()} =====\n")
+            f.write(f"Process ID: {os.getpid()}\n")
+            f.write(f"Python Version: {sys.version}\n")
+            f.write(f"Working Directory: {os.getcwd()}\n\n")
+
+        print(f"✓ Diagnostic monitor started (log: {diagnostic_log})")
+        
+        # Keep track of previous metrics for comparison
+        last_check = time.time()
+        last_mem_usage = 0
+        last_fd_count = 0
+        
+        # Monitor system resources every 15 seconds
+        while True:
+            try:
+                current_time = time.time()
+                elapsed = current_time - last_check
+                last_check = current_time
+                
+                # Get memory usage of this process
+                process_info = subprocess.check_output(
+                    f"ps -o pid,ppid,rss,vsize,pcpu,pmem,cmd -p {os.getpid()}", 
+                    shell=True
+                ).decode('utf-8')
+                
+                # Extract RSS memory from process info (in KB)
+                try:
+                    mem_lines = process_info.strip().split('\n')
+                    if len(mem_lines) >= 2:
+                        mem_values = mem_lines[1].split()
+                        if len(mem_values) >= 3:
+                            current_mem = int(mem_values[2])  # RSS in KB
+                            mem_change = current_mem - last_mem_usage
+                            last_mem_usage = current_mem
+                        else:
+                            current_mem = 0
+                            mem_change = 0
+                    else:
+                        current_mem = 0
+                        mem_change = 0
+                except (ValueError, IndexError):
+                    current_mem = 0
+                    mem_change = 0
+                
+                # Get system load average
+                load_avg = subprocess.check_output("cat /proc/loadavg", shell=True).decode('utf-8').strip()
+                
+                # Check open file handles
+                try:
+                    fd_count = len(os.listdir(f"/proc/{os.getpid()}/fd"))
+                    fd_change = fd_count - last_fd_count
+                    last_fd_count = fd_count
+                except Exception:
+                    fd_count = -1
+                    fd_change = 0
+                
+                # Write diagnostics to log file
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                with open(diagnostic_log, 'a') as f:
+                    f.write(f"\n[{timestamp}] SYSTEM CHECK\n")
+                    f.write(f"Memory: {current_mem / 1024:.1f} MB (change: {mem_change / 1024:+.2f} MB)\n")
+                    f.write(f"Open Files: {fd_count} (change: {fd_change:+d})\n")
+                    f.write(f"Load Average: {load_avg}\n")
+                    
+                    # Check for potential issues
+                    warnings = []
+                    if mem_change > 5 * 1024:  # Memory increased by more than 5MB in 15 seconds
+                        warnings.append(f"Memory increased by {mem_change / 1024:.1f} MB in {elapsed:.1f} seconds")
+                    if fd_change > 10:  # File descriptor count increased by more than 10
+                        warnings.append(f"File handle count increased by {fd_change}")
+                    
+                    if warnings:
+                        f.write("POTENTIAL ISSUES:\n")
+                        for warning in warnings:
+                            f.write(f"- {warning}\n")
+                
+                # Sleep between checks
+                time.sleep(15)
+                    
+            except Exception as e:
+                # Log diagnostic errors but don't crash the monitor
+                try:
+                    with open(diagnostic_log, 'a') as f:
+                        f.write(f"\n[ERROR] Diagnostic collection error: {e}\n")
+                        f.write(traceback.format_exc() + "\n")
+                except:
+                    pass
+                time.sleep(30)  # Sleep longer after error
+    
+    except Exception as e:
+        print(f"⚠️ Diagnostic monitor error: {e}")
+        # Don't let diagnostic failures stop the main process
 
 async def main_async():
     """
@@ -1825,7 +1930,10 @@ async def main_async():
     """
     global HTTP_SESSION, MAIN_EVENT_LOOP
     
-    # Diagnostic monitor has been removed to improve startup performance
+    # Start diagnostic monitor in a background thread
+    print("Starting diagnostic monitor thread...")
+    diagnostic_thread = threading.Thread(target=run_diagnostic_monitor, daemon=True)
+    diagnostic_thread.start()
     
     # Dictionary to track previous match states for comparison
     previous_matches = {}

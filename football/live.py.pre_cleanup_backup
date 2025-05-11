@@ -1,32 +1,5 @@
 #!/usr/bin/env python3
-# ⚠️ IMPORTANT: This script must ONLY be run with 'python3 live.py' command directly (NOT through systemd/supervisord).
 # ⚠️ Please review docs/live-policy.md for all critical init & change-doc requirements.
-
-# =====================================================================
-# RECOMMENDED PERFORMANCE SETTINGS (2025-05-11)
-# =====================================================================
-# For optimal performance and to prevent VS Code disconnections,
-# always run with these environment variables:
-#
-# SPORTS_BOT_DB_CONCURRENCY=2
-# SPORTS_BOT_ALERT_CONCURRENCY=4  # Increased to 4 for multiple alert modules
-# SPORTS_BOT_CONN_LIMIT=5
-# SPORTS_BOT_HOST_LIMIT=2
-# SPORTS_BOT_GC_TUNING=true
-#
-# IMPORTANT 2025-05-11: These settings are REQUIRED when using Python 3.12.3
-# to prevent memory issues. Python 3.12.3 has different memory management
-# characteristics and will run out of memory without these optimizations.
-#
-# EXAMPLE COMMAND:
-# cd /root/CascadeProjects/sports_bot/football && \
-#   SPORTS_BOT_DB_CONCURRENCY=2 \
-#   SPORTS_BOT_ALERT_CONCURRENCY=4 \
-#   SPORTS_BOT_CONN_LIMIT=5 \
-#   SPORTS_BOT_HOST_LIMIT=2 \
-#   SPORTS_BOT_GC_TUNING=true \
-#   python3 live.py
-# =====================================================================
 
 # Counter for memory optimization
 _fetch_cycle = 0
@@ -580,19 +553,6 @@ import atexit
 import requests
 import functools  # For performance optimizations
 import re         # For regex optimizations
-import asyncio
-import aiohttp
-import time
-import json
-import datetime
-import os
-import sys
-import sqlite3
-import traceback
-import pytz
-import threading
-import subprocess
-from typing import Dict, List, Tuple, Optional, Any, Union
 
 # Pre-compile regex patterns for use in hot path functions
 WIND_VALUE_PATTERN = re.compile(r"([0-9]+(?:\.[0-9]+)?)m/s")
@@ -661,8 +621,15 @@ except ImportError:
 print("🔍 DEBUG — CWD:", os.getcwd())
 print("🔍 DEBUG — PYTHONPATH:", os.getenv("PYTHONPATH"))
 
-# System verification removed (05/11/2025)
-# Previous system verification code has been removed as part of system cleanup
+# Run system module verification - this sends alerts for failures but allows the program to continue
+try:
+    from football.alerts import verify_system
+    print("Running system module verification...")
+    verify_system()
+    print("System verification completed")
+except Exception as e:
+    print(f"⚠️ System verification error: {e} - continuing anyway")
+    # We continue even if verification itself fails
 
 """
 Sports Bot - Live Match Processing System
@@ -749,7 +716,7 @@ ALERT_SYSTEM_AVAILABLE = False  # Will be set to True if alert_system module is 
 # Import logger modules
 # These are expected to be present, and failures will be caught by the global hook
 import logger.main_logger
-# pnts3_start removed - no longer used
+import logger.log_filters.pnts3_start.pnts3_start
 from logger.json_logger import json_logger
 print("✓ Logger modules imported successfully")
 
@@ -793,22 +760,13 @@ except Exception as e:
 try:
     import traceback  # For detailed error logging in alert system
     from live_alerts.alert_system import process_match_with_alerts, discover_alert_modules, reset_alert_caches
+    # Initialize the alert system by discovering all available alert modules
+    alert_modules = discover_alert_modules()
+    print(f"✓ Alert system loaded successfully with {len(alert_modules)} alert modules")
     ALERT_SYSTEM_AVAILABLE = True
-    print("✓ Alert system modules imported successfully")
-except ImportError as e:
-    ALERT_SYSTEM_AVAILABLE = False
+except Exception as e:
     print(f"⚠️ Alert system import failed: {e}")
-    print("⚠️ Running without original alert system capability")
-    
-# Import if available: New match alerts system
-try:
-    from all_alerts.live_match_alerts import main_match_alerts
-    MATCH_ALERTS_AVAILABLE = True
-    print("✓ New match alerts system imported successfully")
-except ImportError as e:
-    MATCH_ALERTS_AVAILABLE = False
-    print(f"⚠️ New match alerts system import failed: {e}")
-    print("⚠️ Running without new match alerts capability")
+    print("⚠️ Running without alert system capability")
 
 # Import performance monitoring - optional module
 try:
@@ -1815,17 +1773,11 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
             # Sleep and continue on error
             time.sleep(10)
 
-# Function to monitor system resources and performance in real-time
-# Diagnostic monitor has been removed to improve startup performance
-# and avoid memory usage
-
 async def main_async():
     """
     Main async function with match processing loop
     """
     global HTTP_SESSION, MAIN_EVENT_LOOP
-    
-    # Diagnostic monitor has been removed to improve startup performance
     
     # Dictionary to track previous match states for comparison
     previous_matches = {}
@@ -1973,15 +1925,13 @@ async def process_live_matches_async(session, country_map):
     matches_processed = 0    # Count of matches processed in this cycle
     match_errors = []       # Collect match errors for consolidated reporting
     
-    # Fetch cycle already incremented above
+    # Increment fetch cycle counter for alternating print mode
+    global _fetch_cycle
+    _fetch_cycle += 1
     
     # Initialize or access previous match data dictionary for alert system
     if not hasattr(process_live_matches_async, 'previous_matches'):
         process_live_matches_async.previous_matches = {}
-        
-    # Initialize deferred alerts collection if it doesn't exist
-    if not hasattr(process_live_matches_async, 'deferred_alerts'):
-        process_live_matches_async.deferred_alerts = []
     
     # Initialize batch array once at function start if batch inserts are enabled
     if ENABLE_BATCH_INSERTS:
@@ -2497,29 +2447,18 @@ async def process_live_matches_async(session, country_map):
     print(f"{'=' * 50}")
 
     # Process all deferred alerts after all matches are processed
-    if getattr(process_live_matches_async, 'deferred_alerts', None):
+    if ALERT_SYSTEM_AVAILABLE and getattr(process_live_matches_async, 'deferred_alerts', None):
         n = len(process_live_matches_async.deferred_alerts)
         print(f"\nProcessing {n} deferred match alerts...")
         alert_results = {}
-        print(f"Processing {len(process_live_matches_async.deferred_alerts)} matches for alerts")
         for match_id, match_data, previous in process_live_matches_async.deferred_alerts:
             try:
-                # Try the new match alerts system first if available
-                if MATCH_ALERTS_AVAILABLE:
-                    print(f"Calling main_match_alerts for match {match_id}: {match_data.get('home_team', 'Unknown')} vs {match_data.get('away_team', 'Unknown')}")
-                    # Check if match data has any OU fields
-                    ou_fields = {k: v for k, v in match_data.items() if any(term in k.lower() for term in ['odd', 'line', 'handicap', 'total', 'over', 'under'])}
-                    if ou_fields:
-                        print(f"Match {match_id} has potential OU fields: {ou_fields}")
-                    main_match_alerts.process_match(match_data)
-                
-                # Then fall back to the old alert system if available
-                if ALERT_SYSTEM_AVAILABLE:
-                    # process_match_with_alerts comes from live_alerts/alert_system.py
-                    result = process_match_with_alerts(match_data, previous)
-                    alert_results[match_id] = result
+                # process_match_with_alerts comes from live_alerts/alert_system.py
+                result = process_match_with_alerts(match_data, previous)
+                alert_results[match_id] = result
             except Exception as exc:
                 print(f"Error processing alerts for {match_id}: {exc}")
+        # reset for next round
         # reset for next round
         process_live_matches_async.deferred_alerts.clear()
         

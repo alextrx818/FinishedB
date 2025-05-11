@@ -1,0 +1,146 @@
+Diagnostic started at: Sun May 11 10:04:32 AM UTC 2025
+Process ID: 2069941
+=== Environment Info ===
+Python version: 3.12.3 (main, Feb  4 2025, 14:48:35) [GCC 13.3.0]
+Working directory: /root/CascadeProjects/sports_bot/football
+
+=== Starting Import Phase ===
+
+
+=== Module Structure ===
+AIOFILES_AVAILABLE: <class 'bool'>
+AIOHTTP_AVAILABLE: <class 'bool'>
+ALERT_SEMAPHORE: <class 'threading.Semaphore'>
+ALERT_SEMAPHORE_SIZE: <class 'int'>
+ALERT_SYSTEM_AVAILABLE: <class 'bool'>
+API_DATETIME_FORMAT: <class 'str'>
+ASYNC_LOGGING: <class 'bool'>
+Any: <class 'typing._AnyMeta'>
+BENCHMARK_HOT_PATHS: <class 'bool'>
+CONN_PARAMS: <class 'dict'>
+CONSOLE_TIME_FORMAT: <class 'str'>
+DATETIME_FORMAT: <class 'str'>
+DATE_FORMAT: <class 'str'>
+DB_BATCH_SIZE: <class 'int'>
+DB_FLUSH_INTERVAL: <class 'int'>
+DB_SEMAPHORE: <class 'threading.Semaphore'>
+DB_SEMAPHORE_SIZE: <class 'int'>
+DEFAULT_INTERVAL: <class 'int'>
+Dict: <class 'typing._SpecialGenericAlias'>
+EASTERN: <class 'pytz.tzfile.America/New_York'>
+ENABLE_BATCH_INSERTS: <class 'bool'>
+ENABLE_ENTITY_CACHE: <class 'bool'>
+ENTITY_CACHE_PATH: <class 'str'>
+ENTITY_CACHE_TTL: <class 'int'>
+GC_TUNING_ENABLED: <class 'bool'>
+GRACEFUL_SHUTDOWN_DELAY: <class 'float'>
+HAS_DB_STATS: <class 'bool'>
+HTTP_SESSION: <class 'NoneType'>
+JSON_LOG_RATE: <class 'int'>
+List: <class 'typing._SpecialGenericAlias'>
+MAIN_EVENT_LOOP: <class 'NoneType'>
+MATCH_ALERTS_AVAILABLE: <class 'bool'>
+MAX_RETRIES: <class 'int'>
+Metrics: <class 'type'>
+NullHandler: <class 'type'>
+Optional: <class 'typing._SpecialForm'>
+PROCESSING_MATCHES: <class 'bool'>
+PROJECT_PATH: <class 'str'>
+RETRY_BACKOFF: <class 'float'>
+SECRET: <class 'str'>
+START_TIME: <class 'datetime.datetime'>
+SUPABASE_AVAILABLE: <class 'bool'>
+TELEGRAM_AVAILABLE: <class 'bool'>
+TIMEOUT_PARAMS: <class 'dict'>
+TIME_FORMAT: <class 'str'>
+Tuple: <class 'typing._TupleType'>
+USER: <class 'str'>
+Union: <class 'typing._SpecialForm'>
+VERBOSE_OUTPUT: <class 'bool'>
+WEATHER_VALUE_PATTERN: <class 're.Pattern'>
+WIND_VALUE_PATTERN: <class 're.Pattern'>
+_fetch_cycle: <class 'int'>
+_fetch_json: <class 'function'>
+_handle_asyncio_exception: <class 'function'>
+_handle_exception: <class 'function'>
+_handle_thread_exception: <class 'function'>
+_json: <class 'module'>
+aiohttp: <class 'module'>
+argparse: <class 'module'>
+asyncio: <class 'module'>
+atexit: <class 'module'>
+celsius_to_fahrenheit: <class 'functools._lru_cache_wrapper'>
+create_country_id_to_name_map: <class 'function'>
+datetime: <class 'module'>
+decimal_to_american: <class 'function'>
+decimal_to_american_str: <class 'function'>
+extract_competition_info: <class 'function'>
+extract_match_ids: <class 'function'>
+extract_team_name: <class 'function'>
+fcntl: <class 'module'>
+fetch_competition_info: <class 'function'>
+fetch_country_data: <class 'function'>
+fetch_live_matches: <class 'function'>
+fetch_match_details: <class 'function'>
+fetch_match_odds: <class 'function'>
+fetch_team_info: <class 'function'>
+format_american_odds: <class 'function'>
+format_match_odds: <class 'function'>
+format_odds_display: <class 'function'>
+functools: <class 'module'>
+generate_cache_key: <class 'function'>
+generate_match_summary_text: <class 'function'>
+get_db_stats_summary: <class 'function'>
+get_eastern_time: <class 'function'>
+get_health_check: <class 'function'>
+get_latest_odds: <class 'function'>
+get_status_description: <class 'functools._lru_cache_wrapper'>
+get_uptime_status: <class 'function'>
+get_weather_description: <class 'function'>
+handle_sigusr1: <class 'function'>
+hashlib: <class 'module'>
+hk_to_american: <class 'function'>
+hk_to_american_str: <class 'function'>
+json: <class 'module'>
+json_dumps: <class 'function'>
+json_logger: <class 'logging.Logger'>
+json_logger_path: <class 'str'>
+load_entity_cache: <class 'function'>
+logger: <class 'module'>
+logging: <class 'module'>
+loop: <class 'asyncio.unix_events._UnixSelectorEventLoop'>
+main_async: <class 'function'>
+main_match_alerts: <class 'module'>
+meters_per_second_to_mph: <class 'functools._lru_cache_wrapper'>
+original_asyncio_run: <class 'function'>
+os: <class 'module'>
+patched_asyncio_run: <class 'function'>
+perf_benchmark: <class 'function'>
+pickle: <class 'module'>
+process_live_matches_async: <class 'function'>
+project_path: <class 'str'>
+pytz: <class 'module'>
+re: <class 'module'>
+requests: <class 'module'>
+run_smoke_test: <class 'function'>
+save_entity_cache: <class 'function'>
+send_alert_with_backpressure: <class 'function'>
+setup_logger: <class 'function'>
+signal: <class 'module'>
+sqlite3: <class 'module'>
+supabase: <class 'supabase._sync.client.SyncClient'>
+sys: <class 'module'>
+telegram_listener: <class 'function'>
+telegram_listener_single_poll: <class 'function'>
+threading: <class 'module'>
+time: <class 'module'>
+traceback: <class 'module'>
+verify_system: <class 'function'>
+Importing core libraries...
+Attempting to import alert system...
+✓ Successfully imported main_match_alerts
+
+=== Import Phase Complete ===
+
+=== Starting Main Execution ===
+

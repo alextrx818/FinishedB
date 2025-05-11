@@ -60,6 +60,7 @@ def archive_match_json(match_data: dict) -> None:
             
             # Provide troubleshooting help
             if "permission denied" in str(response.error).lower():
+            
                 logger.error("Permissions issue. Please check the following:")
                 logger.error("1. Verify you're using the correct service role key from Supabase")
                 logger.error("2. Make sure it's the full key starting with 'eyJ...' or another format")

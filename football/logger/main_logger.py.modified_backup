@@ -108,9 +108,6 @@ _log_lock = threading.Lock()
 # Add event listener list for callbacks
 event_listeners = []
 
-# Dictionary to track alert loggers
-alert_loggers = {}
-
 # Build LOG_FILE_PATH pointing to main.logger in the same folder
 LOG_FILE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main.logger")
 
@@ -208,6 +205,42 @@ def new_print(*args, **kwargs):
         # write to the real terminal
         original_print(*args, **kwargs)
         return
+        
+    # 2) Use a STRICT WHITELIST approach - only allow specific formatted content in the log file
+    #    Everything else will be considered a backend log and only shown in the terminal
+    
+    # These are the ONLY patterns that will be written to the log file
+    # Everything else will only go to terminal output
+    whitelist_patterns = [
+        "--- Summary Set #",
+        "==================================================",
+        "MATCH #", 
+        "----- MATCH SUMMARY -----",
+        "Competition ID:",
+        "Competition:", 
+        "Match:",
+        "Score:",
+        "Status:",
+        "Timestamp:",
+        "Match ID:",
+        "--- MATCH BETTING ODDS ---",
+        "ML (Money Line):",
+        "SPREAD (Asia Handicap):",
+        "Over/Under:",
+        "--- MATCH ENVIRONMENT ---",
+        "Weather:",
+        "Humidity:",
+        "Wind:",
+        "[SPORTS_ALERT] three_overunder_alert triggered",  # Keep three_overunder alert logs
+        "[PNTS3_START] Processing match",  # Keep PNTS3 diagnostic messages
+        "[PNTS3_START] saw Over/Under line"
+    ]
+    
+    # Check if this line should be included in the log file based on whitelist
+    is_whitelisted = any(pattern in text for pattern in whitelist_patterns)
+    
+    # Backend logs are everything NOT in the whitelist
+    is_backend_log = not is_whitelisted
     # ————————————————————————————————————————————
     
     # UNIVERSAL RULE: Detect start of a block with the 50-character header
@@ -257,9 +290,9 @@ def new_print(*args, **kwargs):
         kwargs['flush'] = True
     original_print(*args, **kwargs)
     
-    # Log the content using the configured logger system
-    # This will use the TimedRotatingFileHandler for automatic midnight rotation
-    if text.strip():  # Only log non-empty lines
+    # Log the content using the configured logger system, but only for frontend/formatted content
+    # Skip backend processing logs to keep the log file clean and readable
+    if text.strip() and not is_backend_log:  # Only log non-empty, non-backend lines
         logger = logging.getLogger("live")
         logger.info(text.strip())
 
@@ -300,94 +333,82 @@ def handle_match_header(text):
     buffering = True
     buffer_lines = [formatted_header]
 
+# Active buffers tracking (to prevent duplication)
+_active_buffers = set()
+
 # Function to handle the end of a buffer
 def handle_buffer_end():
     global buffering, buffer_lines
     if not buffering:
         return
     
+    # Generate a buffer hash to detect and prevent duplicate processing
+    buffer_hash = hash(tuple(buffer_lines))
+    
+    # Check if we've already processed this exact buffer content
+    if buffer_hash in _active_buffers:
+        # Skip duplicate buffer processing
+        buffering = False
+        buffer_lines = []
+        return
+    
+    # Mark this buffer as being processed
+    _active_buffers.add(buffer_hash)
+    
     # Add a blank line after match to help readability
     buffer_lines.append("\n")
     
     try:
         with _log_lock:
-            chunk = "".join(buffer_lines)
+            # Deduplicate buffer lines to avoid multiple identical entries
+            # This helps prevent the repetition issue
+            processed_lines = []
+            prev_line = None
+            for line in buffer_lines:
+                # Skip consecutive duplicate lines
+                if line != prev_line:
+                    processed_lines.append(line)
+                    prev_line = line
             
-            # Don't replace the global print function - this causes processing interruptions
-            # Just use direct tracking of listener output
-            listener_output_buffer = []
+            # Create the final chunk with deduplicated content
+            chunk = "".join(processed_lines)
             
-            # Call each listener on the current buffer
-            for listener in event_listeners:
-                try:
-                    # Capture any print output from the listener in a controlled way
-                    # by redirecting sys.stdout temporarily
-                    original_stdout = sys.stdout
-                    try:
-                        # Use StringIO to capture output instead of globally replacing print
-                        from io import StringIO
-                        captured_output = StringIO()
-                        sys.stdout = captured_output
-                        
-                        # Call the listener with the log chunk
-                        listener(chunk)
-                        
-                        # Get any output and add to our buffer
-                        output = captured_output.getvalue()
-                        if output:
-                            listener_output_buffer.append(output)
-                    finally:
-                        # Always restore stdout even if there's an exception
-                        sys.stdout = original_stdout
-                except Exception as e:
-                    error_msg = f"Listener error: {e}"
-                    original_print(error_msg)
-                    # Try to send alert about listener failure
-                    try:
-                        # Import these only when needed to avoid circular imports
-                        import importlib
-                        telegram_mod = importlib.import_module("football.telegram")
-                        if hasattr(telegram_mod, "send_system_alert"):
-                            telegram_mod.send_system_alert(
-                                f"Logger listener failed during processing",
-                                alert_type="warning",
-                                error_details=error_msg
-                            )
-                    except Exception as alert_error:
-                        original_print(f"Could not send alert about listener failure: {alert_error}")
-        
-        # Add any captured output from listeners to our chunk
-        chunk += "".join(listener_output_buffer)
-        
-        # IMPORTANT: Actually write the data to the log file
-        # This is the missing piece - we need to use the logger here
-        if chunk.strip():  # Only log non-empty chunks
+            # Save the original print function
+            old_print = builtins.print
+            
+            # Temporarily disable all printing during log processing
+            builtins.print = lambda *args, **kwargs: None
+            
+            # Write to the actual log file
             try:
-                logger = logging.getLogger("live")
-                logger.info(chunk.strip())
-            except Exception as log_error:
-                error_msg = f"Failed to write to log file: {log_error}"
-                original_print(f"CRITICAL ERROR: {error_msg}")
-                # Try to send alert about log writing failure
+                with open(LOG_FILE_PATH, 'a', encoding='utf-8') as log_file:
+                    log_file.write(chunk)
+            except Exception as file_error:
+                old_print(f"Error writing to log file: {file_error}")
+            
+            # Restore original print function before calling listeners
+            builtins.print = old_print
+            
+            # Call only active registered event listeners, protect against exceptions
+            for listener in list(event_listeners):  # Use list to avoid modification during iteration
                 try:
-                    # Import these only when needed to avoid circular imports
-                    import importlib
-                    telegram_mod = importlib.import_module("football.telegram")
-                    if hasattr(telegram_mod, "send_system_alert"):
-                        telegram_mod.send_system_alert(
-                            "CRITICAL: Failed to write to main.logger file",
-                            alert_type="error",
-                            error_details=error_msg
-                        )
-                except Exception as alert_error:
-                    original_print(f"Could not send alert about log writing failure: {alert_error}")
+                    # Execute the listener with the processed chunk
+                    listener(chunk)
+                except Exception as e:
+                    old_print(f"Error in log event listener: {e}")
+                    # Remove failed listeners to prevent further issues
+                    if listener in event_listeners:
+                        try:
+                            event_listeners.remove(listener)
+                            old_print(f"Removed failed event listener to prevent further errors")
+                        except Exception:
+                            pass
         
     except Exception as e:
-        error_msg = f"Logger write error: {e}"
+        error_msg = f"CRITICAL: Error processing log buffer: {e}"
         original_print(error_msg)
-        # Try to send alert about overall buffer handling failure
         try:
-            # Import these only when needed to avoid circular imports
+            # Try to send alert about buffer processing failure
             import importlib
             telegram_mod = importlib.import_module("football.telegram")
             if hasattr(telegram_mod, "send_system_alert"):
@@ -520,104 +541,6 @@ def setup_logger():
                 )
         except Exception as alert_error:
             original_print(f"Could not send alert about logger setup failure: {alert_error}")
-
-# Create a logger for an alert module
-def create_alert_logger(module_name):
-    """
-    Create a dedicated logger for an alert module.
-    
-    Args:
-        module_name: Name of the alert module (without .py extension)
-        
-    Returns:
-        A configured logger instance for the specified alert module
-    """
-    if module_name in alert_loggers:
-        return alert_loggers[module_name]
-    
-    # Skip creating log files for orchestrator/system modules
-    orchestrator_modules = ['orchestrator', 'match_alerts', 'system']
-    
-    # Set up the logger
-    alert_logger = logging.getLogger(f'sports_alerts.{module_name}')
-    alert_logger.setLevel(logging.INFO)
-    
-    # Remove any existing handlers
-    for handler in alert_logger.handlers[:]:  
-        alert_logger.removeHandler(handler)
-    
-    # For orchestrator modules, only create a console handler (no file)
-    if module_name.lower() in orchestrator_modules:
-        console = logging.StreamHandler()
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        console.setFormatter(formatter)
-        alert_logger.addHandler(console)
-        
-        # Store in dictionary
-        alert_loggers[module_name] = alert_logger
-        return alert_logger
-        
-    # For actual alert modules, create a dedicated log file
-    try:
-        # Create alerts directory if it doesn't exist
-        alerts_dir = os.path.join(os.path.dirname(LOG_FILE_PATH), 'alerts')
-        os.makedirs(alerts_dir, exist_ok=True)
-        
-        # Create log file path
-        log_file = os.path.join(alerts_dir, f'{module_name}.log')
-        
-        # Create a rotating file handler
-        handler = TimedRotatingFileHandler(
-            log_file,
-            when="midnight",      # roll over at midnight
-            interval=1,           # every 1 day
-            backupCount=30,       # keep 30 days' worth of logs
-            encoding="utf-8",     # use UTF-8 encoding
-            utc=False             # use local time for rollover
-        )
-        
-        # Create formatter
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-        )
-        handler.setFormatter(formatter)
-        
-        # Add handler to logger
-        alert_logger.addHandler(handler)
-        
-        # Also add a console handler for debugging
-        console = logging.StreamHandler()
-        console.setFormatter(formatter)
-        alert_logger.addHandler(console)
-        
-        # Store in dictionary
-        alert_loggers[module_name] = alert_logger
-        
-        original_print(f"✓ Created alert logger for {module_name} at {log_file}")
-        return alert_logger
-        
-    except Exception as e:
-        error_msg = f"Failed to create alert logger for {module_name}: {e}"
-        original_print(error_msg)
-        # Return a NullLogger that won't crash when used
-        null_logger = logging.getLogger(f'null.{module_name}')
-        null_logger.addHandler(logging.NullHandler())
-        return null_logger
-
-# Function to get or create an alert logger
-def get_alert_logger(module_name):
-    """
-    Get an existing alert logger or create a new one.
-    
-    Args:
-        module_name: Name of the alert module (without .py extension)
-    
-    Returns:
-        A configured logger for the specified module
-    """
-    if module_name not in alert_loggers:
-        return create_alert_logger(module_name)
-    return alert_loggers[module_name]
 
 # Immediately call setup_logger()
 setup_logger()
