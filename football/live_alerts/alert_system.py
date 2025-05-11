@@ -78,6 +78,20 @@ ALERT_PRIORITIES = {
     "data_inconsistency": 75       # Data inconsistency detected
 }
 
+# PRIORITY ALERT CONFIGURATION
+# These alert modules are loaded first and always run for every match
+# You can add new alert modules to this list without changing any code
+# Format: Either full filenames (e.g., "my_alert.py") or patterns (e.g., "odds_*.py")
+PRIORITY_ALERT_PATTERNS = [
+    "3o_u_alert.py",           # 3 Over/Under alert
+    # Add any other priority alerts below
+    # "second_alert.py",       # Another priority alert
+    # "important_*.py",        # All alerts matching this pattern
+]
+
+# Extract just the module names (without .py) for processing
+PRIORITY_ALERT_MODULES = [p[:-3] if p.endswith('.py') else p for p in PRIORITY_ALERT_PATTERNS]
+
 # Time before allowing duplicate alerts for the same condition (seconds)
 ALERT_DEDUPLICATION_TIMEOUT = 15 * 60  # 15 minutes
 
@@ -869,10 +883,61 @@ def discover_alert_modules() -> Dict[str, Any]:
     
     # Get all Python files in the alerts directory that end with _alert.py
     alert_files = [f for f in os.listdir(alerts_dir) 
-                  if f.endswith('_alert.py') and os.path.isfile(os.path.join(alerts_dir, f))]
+                   if f.endswith('_alert.py') and os.path.isfile(os.path.join(alerts_dir, f))]
     
-    # Import each alert module
+    # First load all priority alert modules to ensure they're always available
+    priority_files = []
+    
+    # Find all alert files that match any of the priority patterns
+    for pattern in PRIORITY_ALERT_PATTERNS:
+        for alert_file in alert_files:
+            # Check if file matches the pattern (either exact match or glob pattern)
+            if pattern.endswith('.py'):
+                # Exact filename match
+                if alert_file == pattern:
+                    priority_files.append(alert_file)
+            elif '*' in pattern:
+                # Glob pattern match
+                import fnmatch
+                if fnmatch.fnmatch(alert_file, pattern):
+                    priority_files.append(alert_file)
+    
+    # Remove duplicates while preserving order
+    priority_files = list(dict.fromkeys(priority_files))
+    
+    # Load each priority module with extra care
+    for priority_file in priority_files:
+        module_name = priority_file[:-3]  # Remove .py extension
+        try:
+            # Import the module with extra error handling
+            try:
+                module = importlib.import_module(f"football.live_alerts.{module_name}")
+            except ModuleNotFoundError:
+                # Fall back to direct import if needed
+                import sys
+                import importlib.util
+                spec = importlib.util.spec_from_file_location(
+                    module_name, os.path.join(alerts_dir, priority_file))
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                sys.modules[f"football.live_alerts.{module_name}"] = module
+            
+            # Check if it has the required process_match_data function
+            if hasattr(module, 'process_match_data') and callable(module.process_match_data):
+                loaded_alert_modules[module_name] = module
+                print(f"✓ Loaded PRIORITY alert module: {module_name}")
+            else:
+                print(f"✗ Failed to load PRIORITY module {module_name}: Missing process_match_data function")
+        except Exception as e:
+            print(f"✗ Error loading PRIORITY module {module_name}: {str(e)}")
+            traceback.print_exc()
+    
+    # Import each regular alert module
     for alert_file in alert_files:
+        # Skip priority modules that were already processed
+        if alert_file in priority_files:
+            continue
+            
         module_name = alert_file[:-3]  # Remove .py extension
         try:
             # Import the module
@@ -1008,8 +1073,52 @@ def process_match_with_alerts(match_data: Dict[str, Any], previous_data: Optiona
         except ImportError:
             telegram_available = False
     
-    # Process match through each alert module
+    # Process priority modules first (based on configured patterns)
+    priority_modules = [m for m in PRIORITY_ALERT_MODULES if m.endswith('.py') or '*' not in m]
+    regular_modules = {}
+    
+    # Split modules into priority and regular
     for module_name, module in loaded_alert_modules.items():
+        if module_name in priority_modules:
+            # Process priority module immediately
+            try:
+                # Determine if the module accepts previous_data parameter
+                params = inspect.signature(module.process_match_data).parameters
+                
+                # Call the module's process_match_data function with appropriate parameters
+                if 'previous_data' in params and previous_data is not None:
+                    # Module accepts previous_data
+                    triggered = module.process_match_data(match_data, previous_data)
+                else:
+                    # Module doesn't use previous_data
+                    triggered = module.process_match_data(match_data)
+                
+                results[module_name] = triggered
+                
+                # If alert was triggered, log and send notification
+                if triggered:
+                    match_id = match_data.get('id', 'unknown')
+                    home_team = match_data.get('home_team', 'Home')
+                    away_team = match_data.get('away_team', 'Away')
+                    
+                    # Log the alert trigger
+                    print(f"[PRIORITY_ALERT] {module_name} triggered for {home_team} vs {away_team} (ID: {match_id})")
+                    
+                    # Send the alert to Telegram if available
+                    if telegram_available:
+                        send_sports_alert(module_name, match_data)
+                
+            except Exception as e:
+                # Use more extensive error handling for priority modules
+                print(f"Error in PRIORITY alert module {module_name}: {str(e)}")
+                traceback.print_exc()  # Print full traceback for priority modules
+                results[module_name] = False
+        else:
+            # Save regular modules for later processing
+            regular_modules[module_name] = module
+    
+    # Process remaining regular modules
+    for module_name, module in regular_modules.items():
         try:
             # Determine if the module accepts previous_data parameter
             params = inspect.signature(module.process_match_data).parameters

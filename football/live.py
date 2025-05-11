@@ -497,19 +497,29 @@ def send_alert_with_backpressure(message: str, alert_type: str = "info", error_d
             try:
                 from telegram import send_system_alert
                 send_system_alert(message, alert_type=alert_type, error_details=error_details)
-                # Track alert metrics
-                Metrics.alerts_sent += 1
-            finally:
-                ALERT_SEMAPHORE.release()
-        elif VERBOSE_OUTPUT:
-            print("Skipping alert due to back-pressure (too many concurrent alerts)")
-        Metrics.alerts_skipped += 1
+                # Update throughput metrics
+                process_duration = time.time() - fetch_start
+                if process_duration > 0:  # Avoid division by zero
+                    processed_per_second = matches_processed / process_duration
+                    if VERBOSE_OUTPUT:
+                        print(f"Processed {matches_processed} matches in {process_duration:.2f} seconds ({processed_per_second:.2f}/s)")
+                
+                # Reset processing flag to allow Telegram polling
+                global PROCESSING_MATCHES
+                print(f"\n===== COMPLETED PROCESSING ALL {matches_processed} MATCHES =====\n")
+                PROCESSING_MATCHES = False
+                return processed_per_second if process_duration > 0 else 0
+            except Exception as e:
+                if VERBOSE_OUTPUT:
+                    print(f"⚠️ Failed to send alert: {e}")
+            return
     except Exception as e:
         if VERBOSE_OUTPUT:
             print(f"⚠️ Failed to send alert: {e}")
     return
 
 # ======== CORE IMPORTS ========
+# ... (rest of the code remains the same)
 # These are essential and failure should be caught by the global hook
 import os
 # sys, traceback, threading, and asyncio already imported in the global handler section
@@ -1614,11 +1624,75 @@ def handle_sigusr1(signum, frame) -> None:
         # Use thread-safe semaphore for alert sending
         send_alert_with_backpressure(status_message, "info")
 
+# Global flag to coordinate between match processing and Telegram polling
+PROCESSING_MATCHES = False
+
+def telegram_listener_single_poll(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
+    """
+    Performs a single polling cycle for Telegram updates
+    Called directly from the main processing loop after all matches are processed
+    Returns the number of commands processed
+    """
+    if not TELEGRAM_AVAILABLE:
+        return 0
+        
+    telegram_url = f"https://api.telegram.org/bot{token}/getUpdates"
+    commands_processed = 0
+    offset = None
+    
+    try:
+        print("[Telegram] Polling for updates (this will take up to 20 seconds)")
+        params = {
+            "timeout": 20,  # 20 second timeout
+            "allowed_updates": ["message"]
+        }
+        
+        if offset:
+            params["offset"] = offset
+        
+        response = requests.get(telegram_url, params=params)
+        
+        if response.status_code == 200:
+            updates = response.json()
+            
+            if "result" in updates and updates["result"]:
+                print(f"[Telegram] Received {len(updates['result'])} updates")
+                for update in updates["result"]:
+                    # Update offset to acknowledge this update
+                    offset = update["update_id"] + 1
+                    
+                    # Check if this is a message with text
+                    if "message" in update and "text" in update["message"]:
+                        message_text = update["message"]["text"]
+                        message_chat_id = str(update["message"]["chat"]["id"])
+                        
+                        # Check if this is a status command from the configured chat
+                        if message_text.lower() == "/status" and message_chat_id == chat_id:
+                            print(f"[Telegram] Status command received from authorized chat")
+                            status_message = get_uptime_status()
+                            if TELEGRAM_AVAILABLE:
+                                send_alert_with_backpressure(status_message, "info")
+                            commands_processed += 1
+                        else:
+                            print(f"[Telegram] Ignoring unauthorized message: '{message_text}' from {message_chat_id}")
+            else:
+                print(f"[Telegram] No updates in this polling cycle")
+        else:
+            print(f"[Telegram] Error: {response.status_code} - {response.text}")
+    except Exception as e:
+        print(f"[Telegram] Error in Telegram polling: {e}")
+        traceback.print_exc()
+    
+    return commands_processed
+
 def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", chat_id="6128359776"):
     """
     Background thread that listens for status requests from Telegram
     Processes /status commands sent to the bot
+    **DEPRECATED**: This continuous thread version is no longer used
     """
+    print("[WARNING] The continuous Telegram listener thread is deprecated and no longer used.")
+    print("[WARNING] Telegram polling now happens after match processing in the main loop.")
     if not TELEGRAM_AVAILABLE:
         print("Telegram listener not started - Telegram module not available")
         return
@@ -1629,9 +1703,15 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
     print(f"[Telegram Listener] Started with token: {token[:8]}... and chat_id: {chat_id}")
     
     while True:
+        # Check if matches are currently being processed
+        if PROCESSING_MATCHES:
+            print("[Telegram Listener] Matches being processed, waiting...")
+            time.sleep(1)  # Check again in 1 second
+            continue
+            
         try:
             params = {
-                "timeout": 30,
+                "timeout": 20,  # Changed from 30 to 20 seconds to reduce interruptions in match processing
                 "allowed_updates": ["message"]
             }
             
@@ -1758,8 +1838,42 @@ async def main_async():
                 print(f"\nWaiting {interval} seconds before next update at {eastern_now.strftime(CONSOLE_TIME_FORMAT)}...")
                 print(f"{'-' * 50}")
             
-            # Wait for the next update cycle
-            await asyncio.sleep(interval)
+            # Set the processing flag to block Telegram polling during match processing
+            global PROCESSING_MATCHES
+            PROCESSING_MATCHES = True
+            
+            # After processing all matches, first run the match data monitor check,
+            # then do Telegram polling - this ensures a strict sequence without overlapping operations
+            print(f"\n===== COMPLETED PROCESSING ALL MATCHES - NOW RUNNING MONITORS =====\n")
+            
+            # Run the silent match data monitor check directly (not as a thread)
+            try:
+                # Import the correct match data monitor from football/telegram
+                from football.telegram import match_data_monitor
+                match_data_monitor.silent_monitor_check()
+                # No print statements here to avoid interrupting the match processing
+            except Exception as e:
+                # Silent error handling to avoid interrupting match processing
+                pass
+            
+            # Now do Telegram polling after the match data monitor has completed
+            print(f"\n===== NOW CHECKING TELEGRAM =====\n")
+            
+            if TELEGRAM_AVAILABLE:
+                try:
+                    # Run a single round of Telegram polling
+                    # This will block for up to 20 seconds, which is intentional
+                    # to create a pause between match processing cycles
+                    telegram_poll_result = telegram_listener_single_poll()
+                    if telegram_poll_result:
+                        print(f"[Telegram] Processed {telegram_poll_result} commands")
+                except Exception as e:
+                    print(f"[Telegram] Error during polling: {e}")
+            
+            # Wait for the remainder of the update cycle
+            remaining_wait = max(1, interval - 20)  # At least 1 second
+            print(f"\nWaiting {remaining_wait} more seconds before next update cycle...\n")
+            await asyncio.sleep(remaining_wait)
             
             if VERBOSE_OUTPUT:
                 eastern_now = get_eastern_time()  # Update time after sleep
@@ -1786,6 +1900,8 @@ async def process_live_matches_async(session, country_map):
     """
     Process live matches and display their details using async batch fetching
     """
+    global PROCESSING_MATCHES
+    PROCESSING_MATCHES = True  # Set flag to indicate match processing is active
     # Initialize fetch cycle metrics and indicators
     db_status_shown = False  # Track if we've shown DB status for this fetch
     matches_processed = 0    # Count of matches processed in this cycle
@@ -1887,13 +2003,13 @@ async def process_live_matches_async(session, country_map):
                 if match["id"] == match_id:
                     live_match_data = match
                     break
-            
+
             if not live_match_data:
                 continue
-            
+
             # Get match details from the batch-fetched data
             match_details_data = details_by_id.get(match_id)
-            
+
             # Get match details from the response
             match_details = None
             if match_details_data and "results" in match_details_data and match_details_data["results"]:
@@ -2128,16 +2244,16 @@ async def process_live_matches_async(session, country_map):
                     if match_id in process_live_matches_async.previous_matches:
                         previous_match = process_live_matches_async.previous_matches[match_id]
                     
-                    # Process match through all alert modules
-                    alert_results = process_match_with_alerts(match_data, previous_match)
+                    # DEFER alert processing until after ALL matches are processed
+                    # Just collect the data needed for alerts
+                    if not hasattr(process_live_matches_async, 'deferred_alerts'):
+                        process_live_matches_async.deferred_alerts = []
+                        
+                    # Save this match data for processing after ALL matches are complete
+                    process_live_matches_async.deferred_alerts.append((match_id, match_data, previous_match))
                     
                     # Store current match data for future comparison
                     process_live_matches_async.previous_matches[match_id] = match_data.copy()
-                    
-                    # Log alert results if any were triggered
-                    triggered_alerts = [module for module, triggered in alert_results.items() if triggered]
-                    if triggered_alerts and VERBOSE_OUTPUT:
-                        print(f"✓ Alerts triggered for match {match_id}: {', '.join(triggered_alerts)}")
                     
                 except Exception as e:
                     error_msg = f"Error in alert system for match {match_id}: {str(e)}"
@@ -2299,6 +2415,20 @@ async def process_live_matches_async(session, country_map):
             print(f"  - Supabase connection unavailable - check API key and connection")
     print(f"{'=' * 50}")
 
+    # Process all deferred alerts after all matches are processed
+    if ALERT_SYSTEM_AVAILABLE and getattr(process_live_matches_async, 'deferred_alerts', None):
+        n = len(process_live_matches_async.deferred_alerts)
+        print(f"\nProcessing {n} deferred match alerts...")
+        alert_results = {}
+        for match_id, match_data, previous in process_live_matches_async.deferred_alerts:
+            try:
+                # process_match_with_alerts comes from live_alerts/alert_system.py
+                result = process_match_with_alerts(match_data, previous)
+                alert_results[match_id] = result
+            except Exception as exc:
+                print(f"Error processing alerts for {match_id}: {exc}")
+        # reset for next round
+        process_live_matches_async.deferred_alerts.clear()
 
     print(f"Refreshing in 30 seconds... (Press Ctrl+C to exit)")
     
@@ -2448,32 +2578,13 @@ if __name__ == "__main__":
                 # Continue exit process despite any errors
         atexit.register(exit_handler)
         
-        # Start Telegram listener thread
-        telegram_thread = threading.Thread(target=telegram_listener)
-        telegram_thread.daemon = True  # Allow main thread to exit even if this thread is still running
-        telegram_thread.start()
+        # DO NOT start Telegram listener as a separate thread
+        # It will be integrated into the main processing cycle after all matches are processed
         
-        # Start match data monitor in a separate thread
-        try:
-            import importlib.util
-            # Import the match data monitor dynamically
-            spec = importlib.util.spec_from_file_location(
-                "match_data_monitor", 
-                os.path.join(os.path.dirname(__file__), "telegram", "match_data_monitor.py")
-            )
-            monitor_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(monitor_module)
-            
-            # Start the monitor in a thread
-            data_monitor_thread = threading.Thread(
-                target=monitor_module.main,
-                daemon=True,
-                name="MatchDataMonitor"
-            )
-            data_monitor_thread.start()
-            print("✓ Match data monitor started in background")
-        except Exception as e:
-            print(f"⚠️ Could not start match data monitor: {e}")
+        # DISABLED: Do not start match data monitor as a separate thread
+        # The match data monitor is now integrated directly into the main processing cycle
+        # and called after all matches are processed but before Telegram polling
+        # This ensures all file operations are synchronized and prevents processing pauses
         
         asyncio.run(main_async())
         
