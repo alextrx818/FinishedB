@@ -1,9 +1,15 @@
+#!/usr/bin/env python3
 # combined_match_summary.py
 
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import functools
+import signal
+import sys
+
+# --- Prevent BrokenPipeError when piping into head, etc. ---
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 # Implement conversion functions directly instead of importing from live.py
 def hk_to_american(hk_odds):
@@ -39,12 +45,21 @@ def get_eastern_time():
 def format_american_odds(raw_value, market):
     """Format American odds with consistent sign display, using appropriate conversion."""
     try:
+        # Ensure valid input
+        if raw_value is None or raw_value == "" or raw_value == 0:
+            return "+0"
+            
         if market in ("SPREAD", "Over/Under"):
             amd = hk_to_american(raw_value)
         else:
             amd = decimal_to_american(raw_value)
+            
+        # Check for valid conversion result
+        if amd == 0:
+            return "+0"
+            
         return f"{amd:+d}"
-    except Exception:
+    except Exception as e:
         return "+0"
 
 @functools.lru_cache(maxsize=32)
@@ -78,45 +93,14 @@ def pick_best_entry(entries):
         
     return best_entry or {}
 
-def format_odds_display(formatted_odds):
-    """Format the odds for display."""
-    if not formatted_odds:
-        return "No odds data available"
-    
-    output = []
-    for market in ("ML", "SPREAD", "Over/Under"):
-        entries = formatted_odds.get(market, [])
-        if not entries: 
-            continue
-
-        # Pick the best entry (preferring minutes 4-6)
-        entry = pick_best_entry(entries)
-        if not entry:
-            continue
-            
-        # Format based on market type
-        if market == "ML":
-            hw = format_american_odds(entry.get("home_win", 0), market)
-            dr = format_american_odds(entry.get("draw", 0), market)
-            aw = format_american_odds(entry.get("away_win", 0), market)
-            output.append(f"ML → Home {hw}, Draw {dr}, Away {aw}")
-        elif market == "SPREAD":
-            h = format_american_odds(entry.get("home_win", 0), market)
-            a = format_american_odds(entry.get("away_win", 0), market)
-            output.append(f"SPREAD → Home {h}, Hcap {entry.get('handicap', 0)}, Away {a}")
-        else:  # Over/Under
-            o = format_american_odds(entry.get("over", 0), market)
-            u = format_american_odds(entry.get("under", 0), market)
-            output.append(f"OU → Over {o}, Line {entry.get('handicap', 0)}, Under {u}")
-    
-    return "\n".join(output) or "No odds data available"
-
-def transform_odds(raw_odds):
+def transform_odds(raw_odds, odds_type=None):
     """
     Transform raw odds data from the merged format to the format expected by the formatter
     
     Raw format: List of arrays with numeric/timestamp values
     Expected: List of dictionaries with named keys
+    
+    odds_type: One of 'asia' (SPREAD), 'eu' (ML), or 'bs' (Over/Under)
     """
     if not raw_odds or not isinstance(raw_odds, list):
         return []
@@ -126,53 +110,232 @@ def transform_odds(raw_odds):
         if not isinstance(odds_entry, list) or len(odds_entry) < 5:
             continue
             
-        # Standard format for all odds types
         entry = {
             "time_of_match": str(odds_entry[1]) if len(odds_entry) > 1 else "0",
         }
         
-        # Add type-specific fields based on which odds type this is
-        if len(odds_entry) >= 7:  # asia/SPREAD
-            entry["home_win"] = odds_entry[2] if len(odds_entry) > 2 else 0
-            entry["handicap"] = odds_entry[3] if len(odds_entry) > 3 else 0
-            entry["away_win"] = odds_entry[4] if len(odds_entry) > 4 else 0
-        elif len(odds_entry) >= 5:  # eu/ML
-            entry["home_win"] = odds_entry[2] if len(odds_entry) > 2 else 0
-            entry["draw"] = odds_entry[3] if len(odds_entry) > 3 else 0
-            entry["away_win"] = odds_entry[4] if len(odds_entry) > 4 else 0
-        elif len(odds_entry) >= 5:  # bs/Over/Under
-            entry["over"] = odds_entry[2] if len(odds_entry) > 2 else 0
-            entry["handicap"] = odds_entry[3] if len(odds_entry) > 3 else 0
-            entry["under"] = odds_entry[4] if len(odds_entry) > 4 else 0
-            
+        # Use odds_type parameter to determine the structure
+        if odds_type == "asia":
+            # SPREAD odds
+            entry["home_win"] = odds_entry[2]
+            entry["handicap"] = odds_entry[3]
+            entry["away_win"] = odds_entry[4]
+        elif odds_type == "eu":
+            # ML odds
+            entry["home_win"] = odds_entry[2]
+            entry["draw"]     = odds_entry[3]
+            entry["away_win"] = odds_entry[4]
+        elif odds_type == "bs":
+            # Over/Under odds
+            entry["over"]     = odds_entry[2]
+            entry["handicap"] = odds_entry[3]
+            entry["under"]    = odds_entry[4]
+        
         transformed.append(entry)
         
     return transformed
 
 def summarize_environment(env):
-    weather_map = {1: "Clear", 2: "Cloudy"}
+    """Format environment data for display"""
     lines = []
-    w = weather_map.get(env.get("weather"))
-    if w: lines.append(f"Weather: {w}")
+    
+    # Check if there's any data
+    if not env:
+        return ["No environment data available"]
+        
+    # Weather condition mapping
+    weather_conditions = {
+        "1": "Sunny",
+        "2": "Partly Cloudy",
+        "3": "Cloudy",
+        "4": "Overcast",
+        "5": "Foggy",
+        "6": "Light Rain",
+        "7": "Rain",
+        "8": "Heavy Rain",
+        "9": "Snow",
+        "10": "Thunder"
+    }
+    
+    # Weather
+    if "weather" in env and env["weather"]:
+        weather_code = str(env["weather"])
+        weather_desc = weather_conditions.get(weather_code, f"Unknown ({weather_code})")
+        lines.append(f"Weather: {weather_desc}")
+    
+    # Temperature
     temp = env.get("temperature")
-    if temp and temp.endswith("°C"):
-        c = int(temp.rstrip("°C"))
-        lines.append(f"Temperature: {c * 9/5 + 32:.1f}°F")
-    if env.get("humidity"):
-        lines.append(f"Humidity: {env['humidity']}")
+    if temp:
+        try:
+            # Check if it has °C marker
+            if "\u00b0C" in temp:
+                temp_val = float(temp.replace("\u00b0C", ""))
+                temp_f = temp_val * 9/5 + 32
+            else:
+                # Try to extract numeric value
+                temp_val = float(''.join(c for c in temp if c.isdigit() or c == '.'))
+                # Assume Celsius if not specified
+                temp_f = temp_val * 9/5 + 32 if env.get("temperature_unit") == "C" or "\u00b0C" in temp else temp_val
+            
+            lines.append(f"Temperature: {temp_f:.1f}°F")
+        except (ValueError, TypeError):
+            # If parsing fails, show the raw value
+            lines.append(f"Temperature: {temp}")
+    
+    # Humidity 
+    humidity = env.get("humidity")
+    if humidity:
+        try:
+            # Handle if it's already a string with % sign
+            if isinstance(humidity, str) and "%" in humidity:
+                lines.append(f"Humidity: {humidity}")
+            else:
+                lines.append(f"Humidity: {int(float(humidity))}%")
+        except (ValueError, TypeError):
+            lines.append(f"Humidity: {humidity}")
+    
+    # Wind 
     wind = env.get("wind")
-    if wind and wind.endswith("m/s"):
-        ms = float(wind.rstrip("m/s"))
-        lines.append(f"Wind: {ms * 2.237:.1f} mph")
+    if wind:
+        try:
+            if isinstance(wind, str) and wind.endswith("m/s"):
+                ms = float(wind.rstrip("m/s"))
+                mph = ms * 2.237
+                
+                # Add wind strength descriptor
+                if mph < 1:
+                    strength = "Calm"
+                elif mph < 4:
+                    strength = "Light Air"
+                elif mph < 8:
+                    strength = "Light Breeze"
+                elif mph < 13:
+                    strength = "Gentle Breeze"
+                elif mph < 19:
+                    strength = "Moderate Breeze"
+                elif mph < 25:
+                    strength = "Fresh Breeze"
+                elif mph < 32:
+                    strength = "Strong Breeze"
+                elif mph < 39:
+                    strength = "Near Gale"
+                elif mph < 47:
+                    strength = "Gale"
+                elif mph < 55:
+                    strength = "Strong Gale"
+                elif mph < 64:
+                    strength = "Storm"
+                elif mph < 73:
+                    strength = "Violent Storm"
+                else:
+                    strength = "Hurricane"
+                
+                lines.append(f"Wind: {strength}, {mph:.1f} mph")
+            else:
+                lines.append(f"Wind: {wind}")
+        except (ValueError, TypeError):
+            lines.append(f"Wind: {wind}")
+            
+    # Note: We're explicitly not including pressure as requested
     return lines or ["No environment data available"]
 
+# ────────────────────────────────────────────────────────────────────────────────
+# Unified betting odds display function with precise alignment of numeric values:
+
+def format_odds_display(formatted_odds):
+    """
+    Return perfectly aligned betting-odds rows:
+       │ Market │ Col1    │ Col2    │ Col3   │ Stamp  │
+    """
+    rows = []
+    label_map = {"ML":"ML:", "SPREAD":"Spread:", "Over/Under":"O/U:"}
+
+    for market in ("ML", "SPREAD", "Over/Under"):
+        entry = pick_best_entry(formatted_odds.get(market, []))
+        if not entry:
+            continue
+            
+        time = entry.get("time_of_match", "0")
+        stamp = f"(@{time}')"
+        lab = label_map[market]
+        
+        if market == "ML":
+            home_odds = format_american_odds(entry.get('home_win', 0), market)
+            draw_odds = format_american_odds(entry.get('draw', 0), market)
+            away_odds = format_american_odds(entry.get('away_win', 0), market)
+            
+            rows.append((lab, f"Home: {home_odds}", f"Draw: {draw_odds}", f"Away: {away_odds}", stamp))
+            
+        elif market == "SPREAD":
+            home_odds = format_american_odds(entry.get('home_win', 0), market)
+            handicap = entry.get('handicap', 0)
+            away_odds = format_american_odds(entry.get('away_win', 0), market)
+            
+            rows.append((lab, f"Home: {home_odds}", f"Hcap: {handicap}", f"Away: {away_odds}", stamp))
+            
+        else:  # Over/Under
+            over_odds = format_american_odds(entry.get('over', 0), market)
+            line = entry.get('handicap', 0)
+            under_odds = format_american_odds(entry.get('under', 0), market)
+            
+            rows.append((lab, f"Over: {over_odds}", f"Line: {line}", f"Under: {under_odds}", stamp))
+    
+    if not rows:
+        return "No betting odds available"
+    
+    # Process each column element to extract labels and values for precise alignment
+    processed_rows = []
+    
+    for market, col1, col2, col3, stamp in rows:
+        # Extract label and value from each column
+        col1_parts = col1.split(": ", 1)
+        col2_parts = col2.split(": ", 1)
+        col3_parts = col3.split(": ", 1)
+        
+        if len(col1_parts) == 2 and len(col2_parts) == 2 and len(col3_parts) == 2:
+            # Labels
+            col1_label = col1_parts[0] + ":"
+            col2_label = col2_parts[0] + ":"
+            col3_label = col3_parts[0] + ":"
+            
+            # Values
+            col1_value = col1_parts[1]
+            col2_value = col2_parts[1]
+            col3_value = col3_parts[1]
+            
+            processed_rows.append((market, col1_label, col1_value, col2_label, col2_value, col3_label, col3_value, stamp))
+    
+    if not processed_rows:
+        return "No betting odds available"
+    
+    # Calculate max widths for precise alignment
+    market_width = max(len(row[0]) for row in processed_rows)
+    col1_label_width = max(len(row[1]) for row in processed_rows)
+    col1_value_width = max(len(row[2]) for row in processed_rows)
+    col2_label_width = max(len(row[3]) for row in processed_rows)
+    col2_value_width = max(len(row[4]) for row in processed_rows)
+    col3_label_width = max(len(row[5]) for row in processed_rows)
+    col3_value_width = max(len(row[6]) for row in processed_rows)
+    stamp_width = max(len(row[7]) for row in processed_rows)
+    
+    # Format rows with precise alignment of numeric values
+    lines = []
+    for market, c1_label, c1_val, c2_label, c2_val, c3_label, c3_val, stamp in processed_rows:
+        # Format with precise right-alignment of values for perfect odds alignment
+        line = f"│ {market:<{market_width}} │ {c1_label:<{col1_label_width}} {c1_val:>{col1_value_width}} │ "
+        line += f"{c2_label:<{col2_label_width}} {c2_val:>{col2_value_width}} │ "
+        line += f"{c3_label:<{col3_label_width}} {c3_val:>{col3_value_width}} │ {stamp}"
+        lines.append(line)
+    
+    return "\n".join(lines)
+
+# ────────────────────────────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
-    # Get the path to the merged output file
     from pathlib import Path
     BASE_DIR = Path(__file__).parent
     MERGE_OUTPUT_FILE = BASE_DIR / "merge_logic.json"
     
-    # Load merged match data
     with open(MERGE_OUTPUT_FILE) as f:
         matches = json.load(f)
     
@@ -184,7 +347,7 @@ if __name__ == "__main__":
         print(f"Competition: {match.get('competition')} ({match.get('country')})")
         print(f"Match: {match.get('home_team')} vs {match.get('away_team')}")
         
-        # Score extraction
+        # Score
         home_live = home_ht = away_live = away_ht = 0
         sd = match.get("score", [])
         if isinstance(sd, list) and len(sd) > 3:
@@ -201,15 +364,12 @@ if __name__ == "__main__":
         
         # Betting Odds
         print("\n--- MATCH BETTING ODDS ---")
-        
-        # Transform the odds data structure to match our formatter's expectations
         odds_data = match.get("odds", {})
         formatted_odds = {
-            "ML": transform_odds(odds_data.get("eu", [])),
-            "SPREAD": transform_odds(odds_data.get("asia", [])),
-            "Over/Under": transform_odds(odds_data.get("bs", []))
+            "ML": transform_odds(odds_data.get("eu", []), "eu"),
+            "SPREAD": transform_odds(odds_data.get("asia", []), "asia"),
+            "Over/Under": transform_odds(odds_data.get("bs", []), "bs")
         }
-        
         print(format_odds_display(formatted_odds))
         
         # Environment
