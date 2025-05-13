@@ -1,11 +1,21 @@
 #!/usr/bin/env python3
 from typing import Any, Dict, List, Tuple, Optional
 import logging, os
+from datetime import datetime
+import pytz
 
 # Import extract_ids from pure_json_fetch_cache
 from pure_json_fetch_cache import extract_ids
 
 # ─── LOGGER SETUP ──────────────────────────────────────────────────────────
+# Custom formatter for standardized timestamp format across all logs
+class StandardTimestampFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        # Always use Eastern time with MM/DD/YYYY II:MM:SS AM/PM EDT format
+        eastern = pytz.timezone('US/Eastern')
+        dt = datetime.fromtimestamp(record.created).astimezone(eastern)
+        return dt.strftime("%m/%d/%Y %I:%M:%S %p %Z")
+
 def setup_logger():
     # Create logs directory if it doesn't exist
     log_dir = os.path.join(os.path.dirname(__file__), "logs")
@@ -25,7 +35,8 @@ def setup_logger():
     ch.setLevel(logging.INFO)
     
     # Add formatter with [MERGE_LOGIC] prepended to all messages
-    fmt = logging.Formatter("%(asctime)s %(levelname)s [MERGE_LOGIC] %(message)s")
+    # Use the standardized timestamp formatter for consistent formatting
+    fmt = StandardTimestampFormatter("%(asctime)s %(levelname)s [MERGE_LOGIC] %(message)s")
     fh.setFormatter(fmt)
     ch.setFormatter(fmt)
     

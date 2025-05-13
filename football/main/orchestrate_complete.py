@@ -8,6 +8,9 @@ from datetime import datetime
 import pytz
 from pathlib import Path
 
+# Cache the timezone object at module scope
+TZ = pytz.timezone("US/Eastern")
+
 # Import fetch and merge modules
 sys.path.append(Path(__file__).parent.as_posix())
 import pure_json_fetch_cache
@@ -20,27 +23,67 @@ OUTPUT_FILE = BASE_DIR / "complete_cache_output.json"
 MERGE_OUTPUT_FILE = BASE_DIR / "merge_logic.json"
 SUMMARY_SCRIPT = BASE_DIR / "combined_match_summary.py"
 
-# Logger setup
+# Custom formatter class to ensure consistent timestamp format across all logs
+class StandardTimestampFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        # Always use Eastern time with MM/DD/YYYY II:MM:SS AM/PM EDT format
+        dt = datetime.fromtimestamp(record.created).astimezone(TZ)
+        return dt.strftime("%m/%d/%Y %I:%M:%S %p %Z")
+
+# Logger setup with only console output - file handling moved to wrapper script
 def setup_logger():
     log = logging.getLogger("orchestrator")
     log.setLevel(logging.DEBUG)
-    fh = logging.FileHandler(BASE_DIR / "orchestrator.log")
-    fh.setLevel(logging.DEBUG)
+    
+    # Remove any existing handlers to prevent duplicates
+    while log.handlers:
+        log.handlers.pop()
+    
+    # Create console handler with standardized timestamps
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    fmt = logging.Formatter("%(asctime)s %(levelname)s: %(message)s")
-    fh.setFormatter(fmt)
-    ch.setFormatter(fmt)
-    log.addHandler(fh)
+    ch_fmt = StandardTimestampFormatter("%(asctime)s %(levelname)s: %(message)s")
+    ch.setFormatter(ch_fmt)
+    
+    # Add console handler for immediate output
     log.addHandler(ch)
+    
     return log
 
+# Setup a dedicated logger for match summaries - only for console output now
+def setup_summary_logger():
+    sum_log = logging.getLogger("summary")
+    sum_log.setLevel(logging.INFO)
+    # Prevent propagation to root logger
+    sum_log.propagate = False
+    
+    # Remove any existing handlers to prevent duplicates
+    while sum_log.handlers:
+        sum_log.handlers.pop()
+    
+    # Create console handler only - we'll handle file writing manually
+    # to implement the Universal Prepend Rule
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    
+    # Create a simple formatter with just the message (no timestamp)
+    # to keep the output clean and readable
+    fmt = logging.Formatter("%(message)s")
+    ch.setFormatter(fmt)
+    
+    sum_log.addHandler(ch)
+    
+    return sum_log
+
 logger = setup_logger()
+summary_logger = setup_summary_logger()
 
 def get_eastern_time():
-    tz = pytz.timezone("US/Eastern")
-    now = datetime.now(tz)
+    # Use the cached timezone object for better performance
+    now = datetime.now(TZ)
     return now.strftime("%m/%d/%Y %I:%M:%S %p %Z")
+
+# Prepending logic moved to wrapper script
 
 def unpack_full_cache(full_cache: dict):
     live = {"results": []}
@@ -79,8 +122,10 @@ def unpack_full_cache(full_cache: dict):
     return live, details, odds, team_cache, comp_cache, country_map
 
 async def run_complete_pipeline():
+    # Log start of pipeline - console only, wrapper script captures all output
     logger.info("=== STARTING COMPLETE DATA PIPELINE ===")
     logger.info(f"Start time: {get_eastern_time()}")
+    
     start_ts = time.time()
 
     # STEP 1: Fetch JSON data
@@ -137,14 +182,50 @@ async def run_complete_pipeline():
     logger.info(f"Wrote complete output to {OUTPUT_FILE}")
     logger.info(f"Wrote merge-only output to {MERGE_OUTPUT_FILE}")
 
-    # STEP 5: Run summary script
+    # STEP 5: Run summary script and capture output to dedicated logger
     logger.info("STEP 5: Printing match summaries")
     try:
-        subprocess.run([sys.executable, str(SUMMARY_SCRIPT)], check=True)
-        logger.info("Match summaries printed successfully")
-    except subprocess.CalledProcessError as e:
+        # Create the header for the new entries
+        header = "\n" + "="*50 + "\n"
+        header += f"MATCH SUMMARIES - {get_eastern_time()}\n"
+        header += "="*50 + "\n\n"
+        
+        # Run the summary script and capture its output asynchronously
+        process = await asyncio.create_subprocess_exec(
+            sys.executable, str(SUMMARY_SCRIPT),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        # Get bytes output and decode to text
+        stdout_bytes, stderr_bytes = await process.communicate()
+        stdout = stdout_bytes.decode('utf-8')
+        stderr = stderr_bytes.decode('utf-8')
+        
+        # Apply the Universal Prepend Rule - write new entries at the top of the file
+        summary_log_path = BASE_DIR / "complete_summary.logger"
+        if summary_log_path.exists():
+            # Read existing content and prepend the new content
+            try:
+                with open(summary_log_path, "r+") as f:
+                    old_content = f.read()
+                    f.seek(0)
+                    f.write(header + stdout + "\n\n" + old_content)
+                    f.truncate()
+            except Exception as e:
+                logger.error(f"Error prepending to summary log: {e}")
+        else:
+            # File doesn't exist yet, create it with the new content
+            with open(summary_log_path, "w") as f:
+                f.write(header + stdout)
+            
+        if process.returncode != 0:
+            logger.error(f"Summary script failed with code {process.returncode}: {stderr}")
+        else:
+            logger.info("Match summaries printed successfully")
+    except Exception as e:
         logger.error(f"Summary script failed: {e}")
 
+    # Log completion - console only, wrapper script captures all output
     logger.info("=== PIPELINE COMPLETE ===")
     logger.info(f"End time: {get_eastern_time()}")
     logger.info(f"Total duration: {round(time.time() - start_ts, 2)}s")

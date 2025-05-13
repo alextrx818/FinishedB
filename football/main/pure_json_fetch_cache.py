@@ -19,11 +19,11 @@ import aiofiles
 from pydantic import BaseModel, ValidationError, Extra
 import pytz
 
-# Return US Eastern formatted time
+# Return US Eastern formatted time with timezone
 def get_eastern_time():
     eastern = pytz.timezone('US/Eastern')
     now = datetime.now(eastern)
-    return now.strftime('%m/%d/%Y %I:%M:%S %p')
+    return now.strftime('%m/%d/%Y %I:%M:%S %p %Z')
 
 # Helper for JSON serialization of Pydantic models
 
@@ -68,6 +68,14 @@ SAMPLE_CACHE_PATH = BASE_DIR / "sample_match_cache.json"
 
 # ─── LOGGER ─────────────────────────────────────────────────────────────────────
 import time
+# Custom formatter for standardized timestamp format across all logs
+class StandardTimestampFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        # Always use Eastern time with MM/DD/YYYY II:MM:SS AM/PM EDT format
+        eastern = pytz.timezone('US/Eastern')
+        dt = datetime.fromtimestamp(record.created).astimezone(eastern)
+        return dt.strftime("%m/%d/%Y %I:%M:%S %p %Z")
+
 def _setup_logger():
     # Create logs directory if it doesn't exist
     log_dir = os.path.join(os.path.dirname(__file__), "logs")
@@ -87,7 +95,8 @@ def _setup_logger():
     ch.setLevel(logging.INFO)
     
     # Add more detailed formatter with [FETCH_CACHE] prepended to all messages
-    fmt = logging.Formatter("%(asctime)s %(levelname)s [FETCH_CACHE] %(message)s")
+    # Use the StandardTimestampFormatter for consistent formatting
+    fmt = StandardTimestampFormatter("%(asctime)s %(levelname)s [FETCH_CACHE] %(message)s")
     fh.setFormatter(fmt)
     ch.setFormatter(fmt)
     
@@ -103,8 +112,8 @@ def _setup_logger():
     fetch_handler = logging.FileHandler(fetch_log_file)
     fetch_handler.setLevel(logging.DEBUG)
     
-    # Use a simple format for the fetch logger - also with [FETCH_CACHE] prepended
-    fetch_fmt = logging.Formatter("%(asctime)s: [FETCH_CACHE] %(message)s")
+    # Use the standardized timestamp formatter for fetch details log - with [FETCH_DETAIL] prepended
+    fetch_fmt = StandardTimestampFormatter("%(asctime)s %(levelname)s [FETCH_DETAIL] %(message)s")
     fetch_handler.setFormatter(fetch_fmt)
     fetch_logger.addHandler(fetch_handler)
     
