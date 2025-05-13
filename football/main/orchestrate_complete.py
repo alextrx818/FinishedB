@@ -9,12 +9,16 @@ import pytz
 from pathlib import Path
 
 # Cache the timezone object at module scope
-TZ = pytz.timezone("US/Eastern")
+TZ = pytz.timezone("America/New_York")
 
 # Import fetch and merge modules
 sys.path.append(Path(__file__).parent.as_posix())
 import pure_json_fetch_cache
 from merge_logic import merge_all_matches
+from combined_match_summary import get_status_description
+
+# Define the exact status_id sequence you care about:
+DESIRED_STATUS_ORDER = ["2","3","4","5","6","8","13"]
 
 # Constants
 BASE_DIR = Path(__file__).parent
@@ -159,6 +163,17 @@ async def run_complete_pipeline():
             team_cache, comp_cache, country_map
         )
         merged = [{"created_at": get_eastern_time(), **m} for m in merged]
+        
+        # Sort strictly by our status_id order; any others fall to the end
+        merged = sorted(
+            merged,
+            key=lambda m: (
+                DESIRED_STATUS_ORDER.index(m.get("status_id")) 
+                  if m.get("status_id") in DESIRED_STATUS_ORDER 
+                  else len(DESIRED_STATUS_ORDER)
+            )
+        )
+        
         logger.info(f"Merged {len(merged)} records")
     except Exception as e:
         logger.error(f"Merge logic failed: {e}")
