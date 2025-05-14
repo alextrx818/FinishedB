@@ -1008,6 +1008,30 @@ async def write_json_file(file_path: Path, data: Any) -> None:
         _log.error(f"Error writing to {file_path}: {str(e)}")
         raise
 
+# Function to fetch and cache data - used by the alert system
+def fetch_and_cache():
+    """Fetch the latest match data or load from cache.
+    
+    This function is used by the alert system to retrieve the latest match data.
+    It returns the data directly from the cache file to avoid running a new async fetch.
+    
+    Returns:
+        dict: The full match data including all matches and metadata
+    """
+    try:
+        # Read directly from the cache file
+        if not MATCH_CACHE_PATH.exists():
+            _log.warning(f"Cache file {MATCH_CACHE_PATH} does not exist, alert system may not work properly")
+            return {"matches": [], "metadata": {}}
+            
+        with open(MATCH_CACHE_PATH, 'r') as f:
+            cache_data = json.load(f)
+            _log.info(f"Loaded {len(cache_data.get('matches', []))} matches from cache for alert processing")
+            return cache_data
+    except Exception as e:
+        _log.error(f"Error loading cache for alerts: {e}")
+        return {"matches": [], "metadata": {}}
+
 
 # Run the main function when script is executed directly
 if __name__ == "__main__":
