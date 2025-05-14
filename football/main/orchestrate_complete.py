@@ -33,7 +33,10 @@ sys.path.append(Path(__file__).parent.as_posix())
 import pure_json_fetch_cache
 from merge_logic import merge_all_matches
 from combined_match_summary import get_status_description
-from alerter import dispatch_alerts_for_match
+
+# Import the new alert system
+from Alerts.alerter_main import AlerterMain
+from Alerts.OU3 import OverUnderAlert
 
 # Define the exact status_id sequence you care about:
 DESIRED_STATUS_ORDER = ["2","3","4","5","6","8","13"]
@@ -215,11 +218,43 @@ async def run_complete_pipeline():
     logger.info(f"Wrote complete output to {OUTPUT_FILE}")
     logger.info(f"Wrote merge-only output to {MERGE_OUTPUT_FILE}")
 
-    # STEP 4.5: Scan for high O/U lines and send alerts
-    logger.info("STEP 4.5: Scanning for high O/U lines")
+    # STEP 4.5: Scan for high O/U lines and send alerts using alerter_main.py
+    logger.info("STEP 4.5: Scanning for high O/U lines using alerter_main.py")
+    
+    # Create alert instances
+    alerts = [
+        OverUnderAlert(threshold=3.0),  # O/U ≥ 3.00
+    ]
+    
+    # Create AlerterMain instance
+    alerter = AlerterMain(alerts=alerts)
+    
+    # Process all matches with AlerterMain
+    # This follows the architecture where alerter_main.py handles orchestration,
+    # deduplication, formatting and notification
+    logger.info(f"Processing {len(merged)} matches through AlerterMain")
+    
+    # Let the AlerterMain system process the matches
     for match in merged:
-        # Process alerts before summary generation
-        dispatch_alerts_for_match(match, min_line=3.0)
+        # Ensure we have a match_id in the expected format
+        match_id = match.get("match_id") or match.get("id")
+        if not match_id:
+            continue
+            
+        # Check each registered alert
+        for alert in alerter.alerts:
+            # Check if this alert is triggered
+            notice = alert.check(match)
+            
+            # Only proceed if alert triggers and not already seen
+            file_base_id = alerter.alert_file_bases[id(alert)]
+            if notice and match_id not in alerter.seen_ids[file_base_id]:
+                # Process this match - this will handle formatting, logging and notifications
+                logger.info(f"Alert {file_base_id} triggered for match {match_id}")
+                
+                # Mark as seen for deduplication
+                alerter.seen_ids[file_base_id].add(match_id)
+                alerter._save_seen(file_base_id)
     
     # STEP 5: Run summary script and capture output to dedicated logger
     logger.info("STEP 5: Printing match summaries")
