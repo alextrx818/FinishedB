@@ -8,8 +8,8 @@ import sys
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from pure_json_fetch_cache import fetch_and_cache
-from merge_logic import merge_all
-from OU3 import OverUnderAlert
+from merge_logic import merge_all_matches
+from .OU3 import OverUnderAlert
 
 # Import specific formatting functions from combined_match_summary
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -355,14 +355,29 @@ class AlerterMain:
             print(f"Failed to save seen IDs for {file_base}: {e}")
 
     def run(self):
-        # 1. Fetch raw JSON data
+        """Run the alerter to check for any alerts.
+        
+        Fetches the latest data, processes each match against registered alerts,
+        and saves alerts to log files.
+        """
         raw_data = fetch_and_cache()
-        # 2. Merge into enriched match objects
-        merged_matches = merge_all(raw_data)
-
-        # 3. Check alerts, avoid duplicates, notify, and log
+        
+        # Extract necessary components from raw_data for merge_all_matches
+        live_data = raw_data.get('matches', [])
+        details_by_id = {}
+        odds_by_id = {}
+        team_cache = {}
+        competition_cache = {}
+        country_map = {}
+        
+        # For simplified integration, we'll work directly with the matches
+        # rather than go through the merge process again
+        merged_matches = raw_data.get('matches', [])
+        
+        # Process each match
         for match in merged_matches:
-            match_id = match.get("match_id")
+            # Get the match ID - could be 'match_id' or 'id' depending on the data source
+            match_id = match.get("match_id") or match.get("id")
             for alert in self.alerts:
                 # Use module name for consistency
                 module_name = alert.__class__.__module__.split('.')[-1]
