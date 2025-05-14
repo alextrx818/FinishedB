@@ -16,6 +16,7 @@ sys.path.append(Path(__file__).parent.as_posix())
 import pure_json_fetch_cache
 from merge_logic import merge_all_matches
 from combined_match_summary import get_status_description
+from alerter import dispatch_alerts_for_match
 
 # Define the exact status_id sequence you care about:
 DESIRED_STATUS_ORDER = ["2","3","4","5","6","8","13"]
@@ -197,6 +198,12 @@ async def run_complete_pipeline():
     logger.info(f"Wrote complete output to {OUTPUT_FILE}")
     logger.info(f"Wrote merge-only output to {MERGE_OUTPUT_FILE}")
 
+    # STEP 4.5: Scan for high O/U lines and send alerts
+    logger.info("STEP 4.5: Scanning for high O/U lines")
+    for match in merged:
+        # Process alerts before summary generation
+        dispatch_alerts_for_match(match, min_line=3.0)
+    
     # STEP 5: Run summary script and capture output to dedicated logger
     logger.info("STEP 5: Printing match summaries")
     try:
