@@ -1,3 +1,20 @@
+#!/usr/bin/env python3
+"""
+orchestrate_complete.py - Main orchestration script for the sports betting data pipeline
+
+IMPORTANT NOTE: This script should normally be executed through the run_pipeline.sh wrapper,
+which provides:
+- Process locking (via flock) to prevent multiple instances running simultaneously
+- Head-insertion logging to orchestrator.log (newest entries at the top)
+- Virtual environment activation
+
+To run properly:
+    $ ./run_pipeline.sh
+
+Not recommended to run directly:
+    $ python3 orchestrate_complete.py
+"""
+
 import asyncio
 import json
 import logging
