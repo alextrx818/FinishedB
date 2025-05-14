@@ -274,9 +274,35 @@ async def run_complete_pipeline():
     # STEP 5: Run summary script and capture output to dedicated logger
     logger.info("STEP 5: Printing match summaries")
     try:
+        # Get number of live matches directly from the logs file
+        live_match_count = None
+        log_file = BASE_DIR / "logs" / "pure_json_fetch.log"
+        if log_file.exists():
+            try:
+                # Get the latest "Found X live matches" line from the log
+                result = subprocess.run(
+                    f"grep 'Found .* live matches' {log_file} | tail -1", 
+                    shell=True, capture_output=True, text=True, cwd=BASE_DIR
+                )
+                if result.stdout:
+                    # Extract the number from "Found X live matches"
+                    import re
+                    match = re.search(r"Found (\d+) live matches", result.stdout)
+                    if match:
+                        live_match_count = int(match.group(1))
+            except Exception as e:
+                logger.warning(f"Error getting live match count from logs: {e}")
+        
+        # If we couldn't get the count from logs, count from the cache file
+        if live_match_count is None:
+            with open(FULL_CACHE_FILE, 'r') as f:
+                full_cache = json.load(f)
+                live_match_count = len(full_cache.get("matches", []))
+        
         # Create the header for the new entries
         header = "\n" + "="*50 + "\n"
         header += f"MATCH SUMMARIES - {get_eastern_time()}\n"
+        header += f"LIVE MATCHES FETCHED: {live_match_count}\n"
         header += "="*50 + "\n\n"
         
         # Run the summary script and capture its output asynchronously
