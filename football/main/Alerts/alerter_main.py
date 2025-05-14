@@ -7,8 +7,13 @@ import logging
 import sys
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+# Add the parent directory to sys.path to ensure imports work correctly
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pure_json_fetch_cache import fetch_and_cache
 from merge_logic import merge_all_matches
+
+# Local imports with relative path
 from .OU3 import OverUnderAlert
 
 # Import specific formatting functions from combined_match_summary
