@@ -1,0 +1,35 @@
+# ODDS ALIGNMENT VISUALIZATION
+# Character counts shown for each label
+
+=== CHARACTER COUNTS ===
+Home (4 chars) + ':' = 5 chars
+Draw (4 chars) + ':' = 5 chars
+Away (4 chars) + ':' = 5 chars
+Hcap (4 chars) + ':' = 5 chars
+Line (4 chars) + ':' = 5 chars
+Under (5 chars) + ':' = 6 chars
+
+
+=== CURRENT IMPLEMENTATION (SPACE AFTER EACH COLON) ===
+│ Home : +195 │ Draw : +350 │ Away : +400 │
+│ Home : +180 │ Hcap : -1.0 │ Away : +210 │
+│ Over : +190 │ Line : 3.5  │ Under : +200 │
+
+
+=== OPTION 1: PAD SHORTER LABELS WITH SPACES ===
+│ Home  : +195 │ Draw  : +350 │ Away  : +400 │
+│ Home  : +180 │ Hcap  : -1.0 │ Away  : +210 │
+│ Over  : +190 │ Line  : 3.5  │ Under : +200 │
+
+
+=== OPTION 2: RIGHT ALIGN VALUES WITH FIXED WIDTH ===
+│ Home :  +195 │ Draw :  +350 │ Away :  +400 │
+│ Home :  +180 │ Hcap :  -1.0 │ Away :  +210 │
+│ Over :  +190 │ Line :   3.5 │ Under:  +200 │
+
+
+=== OPTION 3: NO SPACES AFTER COLONS (ORIGINAL) ===
+│ Home: +195 │ Draw: +350 │ Away: +400 │
+│ Home: +180 │ Hcap: -1.0 │ Away: +210 │
+│ Over: +190 │ Line: 3.5  │ Under: +200 │
+

@@ -1,0 +1,11 @@
+
+--- MATCH BETTING ODDS ---
+BEFORE FIX:
+│ Home: +195 │ Draw: +350 │ Away : +400 │ (@4')
+│ Home: +180 │ Hcap: -1.0 │ Away : +210 │ (@4')
+│ Over: +190 │ Line: 3.5 │ Under: +200 │ (@4')
+
+AFTER FIX:
+│ Home: +195 │ Draw: +350 │ Away: +400 │ (@4')
+│ Home: +180 │ Hcap: -1.0 │ Away: +210 │ (@4')
+│ Over: +190 │ Line: 3.5 │ Under: +200 │ (@4')

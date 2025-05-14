@@ -1,0 +1,18 @@
+
+--- MATCH BETTING ODDS ALIGNMENT OPTIONS ---
+
+CURRENT:
+│ Home: +195 │ Draw: +350 │ Away: +400 │ (@4')
+│ Home: +180 │ Hcap: -1.0 │ Away: +210 │ (@4')
+│ Over: +190 │ Line: 3.5 │ Under: +200 │ (@4')
+
+OPTION 1 - FIX COLUMN WIDTH:
+│ Home: +195 │ Draw: +350 │ Away : +400 │ (@4')
+│ Home: +180 │ Hcap: -1.0 │ Away : +210 │ (@4')
+│ Over: +190 │ Line: 3.5 │ Under: +200 │ (@4')
+
+OPTION 2 - FIXED WIDTH WITH PADDING:
+│ Home:  +195 │ Draw:  +350 │ Away:  +400 │ (@4')
+│ Home:  +180 │ Hcap:  -1.0 │ Away:  +210 │ (@4')
+│ Over:  +190 │ Line:   3.5 │ Under: +200 │ (@4')
+

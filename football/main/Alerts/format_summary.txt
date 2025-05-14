@@ -1,0 +1,26 @@
+=== OU3.logger Contents ===
+2025-05-14 16:22:37,603 - Alert triggered for match TEST-123: High OU Line 3.5!
+
+================================================================================
+ALERT TRIGGERED: OU3
+================================================================================
+
+----- MATCH SUMMARY -----
+Timestamp: 05/14/2025 12:20:00 PM EDT
+Match ID: TEST-123
+Competition ID: comp-epl
+Competition: English Premier League (England)
+Match: Manchester United vs Liverpool FC
+Score: 2 - 1 (HT: 2 - 1)
+Status: Half-time (Status ID: 3)
+
+--- MATCH BETTING ODDS ---
+│ Home: +195 │ Draw: +350 │ Away : +400 │ (@4')
+│ Home: +180 │ Hcap: -1.0 │ Away : +210 │ (@4')
+│ Over: +190 │ Line: 3.5 │ Under: +200 │ (@4')
+
+--- MATCH ENVIRONMENT ---
+Temperature: 64.4°F
+Humidity: 72%
+Wind: 10.0 mph
+2025-05-14 16:22:37,605 - Alert processing complete
