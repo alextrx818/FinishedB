@@ -1,13 +1,19 @@
 {
-  // Don't watch or index anything under venv/
+  // Don't watch or index anything under venv/ or logs/
   "files.watcherExclude": {
     "**/venv/**": true,
-    "**/football/Formatter/venv/**": true
+    "**/football/Formatter/venv/**": true,
+    "**/logs/**": true
   },
-  // Don't search inside venv/, either
+  // Don't search inside venv/ or logs/
   "search.exclude": {
     "**/venv/**": true,
-    "**/football/Formatter/venv/**": true
+    "**/football/Formatter/venv/**": true,
+    "**/logs/**": true
+  },
+  // Hide logs folder from file explorer
+  "files.exclude": {
+    "**/logs/**": true
   },
   // Python-specific settings
   "python.analysis.extraPaths": [

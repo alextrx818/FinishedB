@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 import functools
 import signal
 import sys
+import os
 
 # --- Prevent BrokenPipeError when piping into head, etc. ---
 signal.signal(signal.SIGPIPE, signal.SIG_DFL)
@@ -38,6 +39,10 @@ def decimal_to_american(decimal_odds):
         return 0
 
 API_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p %Z"
+
+# Match numbering system
+MATCH_COUNTER_FILE = "match_counters.json"
+MATCH_HEADER_WIDTH = 80
 
 def get_eastern_time():
     return datetime.now(ZoneInfo("America/New_York"))
@@ -331,6 +336,53 @@ def format_odds_display(formatted_odds):
 
 # ────────────────────────────────────────────────────────────────────────────────
 
+def get_match_count():
+    """
+    Get and update the match count for the day.
+    
+    Returns:
+        tuple: (current_match_number, total_matches_today)
+    """
+    # Get current date as string
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    # Initialize counters if they don't exist
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    counter_file = os.path.join(base_dir, MATCH_COUNTER_FILE)
+    
+    # Load existing counters or initialize
+    counters = {}
+    if os.path.exists(counter_file):
+        try:
+            with open(counter_file, 'r') as f:
+                counters = json.load(f)
+        except Exception:
+            # If file is corrupted, start fresh
+            counters = {}
+    
+    # Initialize for today if needed
+    if today not in counters:
+        counters[today] = {"total": 0, "current": 0}
+    
+    # Increment total matches for today
+    counters[today]["total"] += 1
+    total_matches = counters[today]["total"]
+    
+    # Increment current match counter
+    counters[today]["current"] += 1
+    current_match = counters[today]["current"]
+    
+    # Save updated counters
+    try:
+        with open(counter_file, 'w') as f:
+            json.dump(counters, f)
+    except Exception:
+        # If we can't save, just continue without error
+        pass
+        
+    return (current_match, total_matches)
+
+
 if __name__ == "__main__":
     from pathlib import Path
     BASE_DIR = Path(__file__).parent
@@ -340,6 +392,13 @@ if __name__ == "__main__":
         matches = json.load(f)
     
     for match in matches:
+        # Get match number and total matches
+        match_num, total_matches = get_match_count()
+        
+        # Print header with match numbering
+        print("\n" + "=" * MATCH_HEADER_WIDTH)
+        print(f"#{match_num} of {total_matches} MATCH SUMMARY @ {get_eastern_time().strftime('%I:%M:%S %p %m/%d/%Y')}")
+        print("=" * MATCH_HEADER_WIDTH)
         print("\n----- MATCH SUMMARY -----")
         print(f"Timestamp: {get_eastern_time().strftime(API_DATETIME_FORMAT)}")
         print(f"Match ID: {match.get('id')}")

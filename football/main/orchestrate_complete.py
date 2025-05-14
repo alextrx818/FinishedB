@@ -6,13 +6,28 @@ IMPORTANT NOTE: This script should normally be executed through the run_pipeline
 which provides:
 - Process locking (via flock) to prevent multiple instances running simultaneously
 - Head-insertion logging to orchestrator.log (newest entries at the top)
-- Virtual environment activation
+- Virtual environment activation at ./sports_venv/
 
 To run properly:
     $ ./run_pipeline.sh
 
 Not recommended to run directly:
     $ python3 orchestrate_complete.py
+
+VIRTUAL ENVIRONMENT REQUIREMENTS:
+The script depends on a virtual environment located at ./sports_venv/ with the following
+key dependencies:
+- requests: For sending Telegram notifications
+- pytz: For timezone handling (America/New_York)
+- aiohttp: For asynchronous HTTP requests
+- propcache: For data caching
+
+Installation (if needed):
+    $ cd football/main
+    $ python -m venv sports_venv
+    $ ./sports_venv/bin/pip install requests pytz aiohttp propcache
+
+The run_pipeline.sh wrapper automatically activates this environment.
 """
 
 import asyncio

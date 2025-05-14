@@ -425,6 +425,59 @@ def toggle_smooth_scrolling(enabled=None):
     return SMOOTH_SCROLLING
 
 # Define and immediately call setup_logger() 
+def setup_module_logger(module_name, custom_log_file=None):
+    """
+    Set up a module-specific logger that integrates with the main logging system.
+    
+    Args:
+        module_name: Name of the module (used for log identification)
+        custom_log_file: Optional custom log file name (e.g., 'fetcher.logger')
+        
+    Returns:
+        A configured logger instance for the module
+    """
+    logger = logging.getLogger(f"live.{module_name}")
+    logger.setLevel(logging.INFO)
+    
+    # Check if handlers are already set up to avoid duplicates
+    if not logger.handlers:
+        try:
+            # Determine log file path
+            if custom_log_file:
+                # Use a module-specific log file in the logger directory
+                log_path = os.path.join(os.path.dirname(__file__), custom_log_file)
+            else:
+                # Default to the main logger file
+                log_path = os.path.join(os.path.dirname(__file__), "main.logger")
+                
+            # Create the file handler for this module's logs
+            file_handler = logging.FileHandler(log_path)
+            
+            # Use the same formatter as the main logger
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            file_handler.setFormatter(formatter)
+            
+            # Add the handler to the logger
+            logger.addHandler(file_handler)
+            
+            # Add a console handler for terminal output
+            console_handler = logging.StreamHandler()
+            console_handler.setFormatter(formatter)
+            logger.addHandler(console_handler)
+            
+            # Success message identifying where logs will be written
+            if custom_log_file:
+                logger.info(f"Module logger for {module_name} initialized successfully (writing to {custom_log_file})")
+            else:
+                logger.info(f"Module logger for {module_name} initialized successfully (writing to main.logger)")
+        except Exception as e:
+            # If it fails, set up a basic console logger as fallback
+            console_handler = logging.StreamHandler()
+            logger.addHandler(console_handler)
+            logger.warning(f"Error setting up file handler for {module_name}: {e}")
+    
+    return logger
+
 def setup_logger():
     """Set up and configure the logger"""
     try:

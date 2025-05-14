@@ -1,0 +1,12 @@
+2025-05-11 11:22:23,380 - sports_alerts.ThreeOU - INFO - 
+==================================================
+2025-05-11 11:22:23,381 - sports_alerts.ThreeOU - INFO - 
+=== ALERT DETECTED: 3.5 Over/Under Alert ===
+Alert Type: three_ou
+Message: Match has an over/under line of 3.5
+Teams: Test Home vs Test Away
+Competition: Test League
+
+2025-05-11 11:22:23,381 - sports_alerts.ThreeOU - INFO - Error generating match summary: name 'pytz' is not defined
+2025-05-11 11:22:23,381 - sports_alerts.ThreeOU - INFO - ==================================================
+

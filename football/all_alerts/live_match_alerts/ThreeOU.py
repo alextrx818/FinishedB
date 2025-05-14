@@ -32,8 +32,11 @@ def process_match_data(match_data: Dict[str, Any], previous_data: Optional[Dict[
     Returns:
         Alert data dict or None if no alert should be sent
     """
-    # Print at the module level to help diagnose what's happening
+    # Enhanced debugging to show match data and fields
     print(f"ThreeOU examining match: {match_data.get('home_team', 'Unknown')} vs {match_data.get('away_team', 'Unknown')}")
+    # Look for all odds-related fields to debug the issue
+    odds_fields = {k: v for k, v in match_data.items() if any(term in k.lower() for term in ['odd', 'line', 'handicap', 'total', 'over', 'under'])}
+    print(f"MATCH {match_data.get('id', 'unknown')} OU FIELDS: {odds_fields}")
     
     # Skip if module is disabled
     if not CONFIG["enabled"]:

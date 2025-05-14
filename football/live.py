@@ -70,11 +70,11 @@ import time  # For time-based operations and benchmarking
 MAIN_EVENT_LOOP = None
 
 # Performance and reliability settings
-MAX_RETRIES = int(os.environ.get('SPORTS_BOT_MAX_RETRIES', '3'))                # API request retry count
-RETRY_BACKOFF = float(os.environ.get('SPORTS_BOT_RETRY_BACKOFF', '1.5'))        # Exponential backoff multiplier
+MAX_RETRIES = int(os.environ.get('SPORTS_BOT_MAX_RETRIES', '3'))  # Increased retries for better resilience
+RETRY_BACKOFF = float(os.environ.get('SPORTS_BOT_RETRY_BACKOFF', '1.2'))  # Reduced backoff factor
 DB_SEMAPHORE_SIZE = int(os.environ.get('SPORTS_BOT_DB_CONCURRENCY', '10'))      # Max concurrent DB operations
 ALERT_SEMAPHORE_SIZE = int(os.environ.get('SPORTS_BOT_ALERT_CONCURRENCY', '5')) # Max concurrent alerts
-DEFAULT_INTERVAL = int(os.environ.get('SPORTS_BOT_UPDATE_INTERVAL', '30'))      # Default update interval in seconds
+DEFAULT_INTERVAL = int(os.environ.get('SPORTS_BOT_UPDATE_INTERVAL', '15'))      # Faster update cycles
 JSON_LOG_RATE = int(os.environ.get('SPORTS_BOT_JSON_LOG_RATE', '5'))            # Log every Nth match in non-verbose mode
 GRACEFUL_SHUTDOWN_DELAY = float(os.environ.get('SPORTS_BOT_SHUTDOWN_DELAY', '1.0')) # Seconds before forced exit
 DB_BATCH_SIZE = int(os.environ.get('SPORTS_BOT_DB_BATCH_SIZE', '10'))           # Number of records to batch in a single DB insert
@@ -101,18 +101,20 @@ try:
     # Define connection settings but don't create the connector yet
     # We'll create it when we have a running event loop
     CONN_PARAMS = {
-        "limit": int(os.environ.get('SPORTS_BOT_CONN_LIMIT', '10')),        # Overall connection limit
-        "limit_per_host": int(os.environ.get('SPORTS_BOT_HOST_LIMIT', '5')), # Prevent overwhelming any single endpoint
+        "limit": int(os.environ.get('SPORTS_BOT_CONN_LIMIT', '10')),        # Reduced connection limit to avoid overwhelming API
+        "limit_per_host": int(os.environ.get('SPORTS_BOT_HOST_LIMIT', '5')), # Reduced per-host limit
         "enable_cleanup_closed": True,  # Prevent socket leak
-        "force_close": False,     # Keep connections alive when possible
-        "ttl_dns_cache": 300      # Cache DNS results for 5 minutes
+        "keepalive_timeout": 15,  # Close idle connections after 15 seconds
+        "force_close": False,     # Don't force close connections
+        "ssl": False              # Disable SSL verification for better performance
     }
     
     # Set reasonable timeouts to prevent hung connections
     TIMEOUT_PARAMS = {
-        "total": int(os.environ.get('SPORTS_BOT_TIMEOUT_TOTAL', '30')),     # Overall operation timeout
-        "connect": int(os.environ.get('SPORTS_BOT_TIMEOUT_CONNECT', '10')),  # Connection establishment timeout
-        "sock_read": int(os.environ.get('SPORTS_BOT_TIMEOUT_READ', '15'))   # Socket read timeout
+        "total": int(os.environ.get('SPORTS_BOT_TIMEOUT_TOTAL', '30')),       # Increased overall timeout (up from 15s)
+        "connect": int(os.environ.get('SPORTS_BOT_TIMEOUT_CONNECT', '5')),     # Connection timeout
+        "sock_connect": int(os.environ.get('SPORTS_BOT_TIMEOUT_SOCK_CONNECT', '5')),  # Socket connection timeout
+        "sock_read": int(os.environ.get('SPORTS_BOT_TIMEOUT_READ', '20'))   # Increased read timeout (up from 10s)
     }
 
     # Module-level HTTP session for reuse - will be properly initialized in main_async
@@ -789,6 +791,56 @@ except Exception as e:
     print(f"⚠️ Telegram import failed: {e}")
     print("⚠️ Running without Telegram notification capability")
 
+# Import telegram listener setup code if available
+if TELEGRAM_AVAILABLE:
+    try:
+        import threading
+        from telegram.ext import Updater
+        from football.telegram.notifier import setup_telegram_listener, telegram_listener_single_poll
+        TG_UPDATER = None  # Will be initialized when needed
+        
+        # Flag to control the Telegram polling thread
+        TELEGRAM_THREAD_RUNNING = False
+        
+        # Function to run Telegram polling in a background thread
+        def telegram_polling_thread():
+            """Run Telegram polling in a background thread to avoid blocking the main loop."""
+            global TELEGRAM_THREAD_RUNNING
+            TELEGRAM_THREAD_RUNNING = True
+            print("✓ Telegram polling thread started")
+            
+            # Poll at a consistent interval without blocking the main loop
+            poll_interval = 3  # seconds between polls
+            while TELEGRAM_THREAD_RUNNING:
+                try:
+                    # Run a single round of polling with short timeout
+                    result = telegram_listener_single_poll(timeout=2)
+                    if result and result > 0:
+                        print(f"[Telegram] Processed {result} commands")
+                except Exception as e:
+                    print(f"[Telegram] Error during polling: {e}")
+                
+                # Sleep briefly between polls
+                time.sleep(poll_interval)
+            
+            print("Telegram polling thread stopped")
+        
+        # Start the Telegram polling thread
+        def start_telegram_thread():
+            """Start the Telegram polling in a background thread."""
+            global TELEGRAM_THREAD_RUNNING
+            if not TELEGRAM_THREAD_RUNNING:
+                telegram_thread = threading.Thread(target=telegram_polling_thread, daemon=True)
+                telegram_thread.start()
+                return telegram_thread
+            return None
+            
+        print("✓ Telegram notification system imported successfully")
+    except ImportError as e:
+        print(f"⚠️ Telegram import failed: {e}")
+        print("⚠️ Running without Telegram notification capability")
+        TELEGRAM_AVAILABLE = False
+
 # Import alert system - this is optional but highly recommended
 try:
     import traceback  # For detailed error logging in alert system
@@ -883,9 +935,9 @@ def generate_match_summary_text(match_data, formatted_odds):
 
     return "\n".join(lines)
 
-async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict) -> dict:
+async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict, operation_name="API request") -> dict:
     """
-    Helper function to fetch JSON data from an API endpoint
+    Helper function to fetch JSON data from an API endpoint with improved logging and diagnostics
     """
     # More robust fetch with retries and better error handling
     retries = MAX_RETRIES  # From environment variable
@@ -894,29 +946,86 @@ async def _fetch_json(session: aiohttp.ClientSession, url: str, params: dict) ->
     # Track API metrics
     Metrics.api_requests += 1
     
+    # Extract endpoint name for cleaner logging
+    endpoint = url.split('/')[-1] if '/' in url else url
+    
+    # Adaptive timeouts - increase with each retry
+    base_total_timeout = int(os.environ.get('SPORTS_BOT_TIMEOUT', '15'))
+    base_connect_timeout = int(os.environ.get('SPORTS_BOT_CONNECT_TIMEOUT', '5'))
+    base_read_timeout = int(os.environ.get('SPORTS_BOT_READ_TIMEOUT', '10'))
+    
     for attempt in range(retries):
         try:
             if attempt > 0:
                 Metrics.api_retries += 1
-                if VERBOSE_OUTPUT:
-                    print(f"Retry attempt {attempt} for {url}")
+                # Only print for first retry attempt to reduce console noise
+                if attempt == 1 or VERBOSE_OUTPUT:
+                    print(f"Retry #{attempt} for {operation_name} ({endpoint})")
+            
+            # Print diagnostic info for the first attempt
+            if attempt == 0 and VERBOSE_OUTPUT:
+                print(f"Starting {operation_name} ({endpoint})")
                 
-            async with session.get(url, params=params) as resp:
+            # Adaptive timeout - increase with each retry
+            total_timeout = base_total_timeout + (attempt * 5)
+            connect_timeout = base_connect_timeout + (attempt * 2)
+            read_timeout = base_read_timeout + (attempt * 3)
+            
+            timeout = aiohttp.ClientTimeout(
+                total=total_timeout,
+                connect=connect_timeout,
+                sock_read=read_timeout
+            )
+            
+            async with session.get(url, params=params, timeout=timeout) as resp:
                 if resp.status == 200:
-                    return await resp.json()
+                    try:
+                        result = await resp.json()
+                        if attempt > 0:  # Show success after retry
+                            print(f"✓ Success for {operation_name} after {attempt+1} attempts")
+                        elif VERBOSE_OUTPUT:
+                            print(f"Completed {operation_name} ({endpoint})")
+                        return result
+                    except json.JSONDecodeError as jde:
+                        raise Exception(f"Invalid JSON response: {str(jde)}")
+                elif resp.status == 429:  # Rate limit
+                    # Special handling for rate limits
+                    error_text = await resp.text()
+                    retry_after = resp.headers.get('Retry-After', '5')
+                    sleep_time = int(retry_after) if retry_after.isdigit() else 5
+                    print(f"⚠️ Rate limited on {operation_name} - waiting {sleep_time}s")
+                    await asyncio.sleep(sleep_time)
+                    # Don't count rate limits against retry count
+                    continue
                 else:
                     error_text = await resp.text()
                     raise Exception(f"HTTP {resp.status}: {error_text[:100]}")
                     
+        except asyncio.TimeoutError:
+            last_error = f"Timeout after {timeout.total} seconds"
+            print(f"⚠️ Timeout on {operation_name} ({endpoint}) - attempt {attempt+1}/{retries} with {timeout.total}s timeout")
+            # Add jitter to avoid thundering herd problem on retries
+            jitter = random.uniform(0.5, 1.5)
         except Exception as e:
             last_error = e
-            # Exponential backoff between retries
-            if attempt < retries - 1:
-                # Use configurable backoff factor
-                await asyncio.sleep(RETRY_BACKOFF ** attempt)
+            # Only log first error to avoid noise
+            if attempt == 0:
+                print(f"⚠️ Error on {operation_name} ({endpoint}): {e}")
+            # No jitter for non-timeout errors
+            jitter = 1.0
+                
+        # Wait with exponential backoff + jitter between retries
+        if attempt < retries - 1:
+            # More aggressive backoff factor for timeouts to allow system recovery
+            backoff_time = RETRY_BACKOFF ** attempt * jitter
+            # Avoid long waits for non-critical operations
+            if backoff_time > 30:
+                backoff_time = 30 + random.uniform(0, 5)  # Cap at ~30s with some jitter
+            await asyncio.sleep(backoff_time)
     
     # If we get here, all retries failed
     Metrics.api_failures += 1
+    print(f"❌ Failed {operation_name} ({endpoint}) after {retries} attempts: {last_error}")
     raise Exception(f"Failed after {retries} attempts: {last_error}")
 
 async def fetch_live_matches(session):
@@ -926,7 +1035,8 @@ async def fetch_live_matches(session):
     print("Fetching live matches...")
     return await _fetch_json(session, 
                              "https://api.thesports.com/v1/football/match/detail_live",
-                             {"user": USER, "secret": SECRET})
+                             {"user": USER, "secret": SECRET},
+                             operation_name="Fetch live matches")
 
 async def fetch_match_details(session, match_id):
     """
@@ -934,7 +1044,8 @@ async def fetch_match_details(session, match_id):
     """
     return await _fetch_json(session, 
                              "https://api.thesports.com/v1/football/match/recent/list",
-                             {"user": USER, "secret": SECRET, "uuid": match_id})
+                             {"user": USER, "secret": SECRET, "uuid": match_id},
+                             operation_name=f"Match details for {match_id}")
 
 async def fetch_match_odds(session, match_id):
     """
@@ -942,7 +1053,8 @@ async def fetch_match_odds(session, match_id):
     """
     return await _fetch_json(session, 
                              "https://api.thesports.com/v1/football/odds/history",
-                             {"user": USER, "secret": SECRET, "uuid": match_id})
+                             {"user": USER, "secret": SECRET, "uuid": match_id},
+                             operation_name=f"Match odds for {match_id}")
 
 async def fetch_team_info(session, team_id):
     """
@@ -950,7 +1062,8 @@ async def fetch_team_info(session, team_id):
     """
     return await _fetch_json(session, 
                              "https://api.thesports.com/v1/football/team/additional/list",
-                             {"user": USER, "secret": SECRET, "uuid": team_id})
+                             {"user": USER, "secret": SECRET, "uuid": team_id},
+                             operation_name=f"Team info for {team_id}")
 
 async def fetch_competition_info(session, competition_id):
     """
@@ -958,16 +1071,18 @@ async def fetch_competition_info(session, competition_id):
     """
     return await _fetch_json(session, 
                              "https://api.thesports.com/v1/football/competition/additional/list",
-                             {"user": USER, "secret": SECRET, "uuid": competition_id})
+                             {"user": USER, "secret": SECRET, "uuid": competition_id},
+                             operation_name=f"Competition info for {competition_id}")
 
 async def fetch_country_data(session):
     """
-    Fetch all country data
+    Fetch data about all countries from the API
     """
     print("Fetching country data...")
     return await _fetch_json(session, 
                              "https://api.thesports.com/v1/football/country/list",
-                             {"user": USER, "secret": SECRET})
+                             {"user": USER, "secret": SECRET},
+                             operation_name="Fetch country data")
 
 def extract_match_ids(matches_data):
     """
@@ -1695,9 +1810,9 @@ def telegram_listener_single_poll(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkzti
     offset = None
     
     try:
-        print("[Telegram] Polling for updates (this will take up to 20 seconds)")
+        print("[Telegram] Polling for updates (this will take up to 15 seconds)")
         params = {
-            "timeout": 20,  # 20 second timeout
+            "timeout": 15,  # 15 second timeout
             "allowed_updates": ["message"]
         }
         
@@ -1765,7 +1880,7 @@ def telegram_listener(token="7764953908:AAHMpJsw5vKQYPiJGWrj0PgDkztiIgY_dko", ch
             
         try:
             params = {
-                "timeout": 20,  # Changed from 30 to 20 seconds to reduce interruptions in match processing
+                "timeout": 15,  # 15 second timeout
                 "allowed_updates": ["message"]
             }
             
@@ -1833,6 +1948,12 @@ async def main_async():
     # Store main event loop for cleanup during shutdown
     MAIN_EVENT_LOOP = asyncio.get_event_loop()
     
+    # Start Telegram polling in a background thread if available
+    telegram_thread = None
+    if TELEGRAM_AVAILABLE and 'start_telegram_thread' in globals():
+        print("Starting Telegram polling in background thread...")
+        telegram_thread = start_telegram_thread()
+    
     # Apply GC optimizations if enabled
     if GC_TUNING_ENABLED and 'gc' in globals():
         # Adjust GC thresholds for better performance in hot loops
@@ -1846,7 +1967,7 @@ async def main_async():
     interval = DEFAULT_INTERVAL  # Default interval from environment variable
     parser = argparse.ArgumentParser(description='Live Football Match Monitor')
     parser.add_argument('-s', '--single', action='store_true', help='Run once and exit (default: run continuously)')
-    parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 30)')
+    parser.add_argument('-i', '--interval', type=int, help='Update interval in seconds (default: 15)')
     args = parser.parse_args()
     
     if args.single:
@@ -1916,24 +2037,13 @@ async def main_async():
                 # Silent error handling to avoid interrupting match processing
                 pass
             
-            # Now do Telegram polling after the match data monitor has completed
-            print(f"\n===== NOW CHECKING TELEGRAM =====\n")
+            # Do not perform Telegram polling in the main loop anymore - it's now in a background thread
+            print(f"\n===== MATCH PROCESSING COMPLETE - STARTING NEXT CYCLE =====\n")
             
-            if TELEGRAM_AVAILABLE:
-                try:
-                    # Run a single round of Telegram polling
-                    # This will block for up to 20 seconds, which is intentional
-                    # to create a pause between match processing cycles
-                    telegram_poll_result = telegram_listener_single_poll()
-                    if telegram_poll_result:
-                        print(f"[Telegram] Processed {telegram_poll_result} commands")
-                except Exception as e:
-                    print(f"[Telegram] Error during polling: {e}")
-            
-            # Wait for the remainder of the update cycle
-            remaining_wait = max(1, interval - 20)  # At least 1 second
-            print(f"\nWaiting {remaining_wait} more seconds before next update cycle...\n")
-            await asyncio.sleep(remaining_wait)
+            # Reduced wait time between update cycles
+            print(f"Refreshing in {interval//2} seconds... (Press Ctrl+C to exit)")
+            # Much shorter sleep with more responsive feel
+            await asyncio.sleep(max(5, interval // 2))  # At least 5 seconds, but generally faster refresh
             
             if VERBOSE_OUTPUT:
                 eastern_now = get_eastern_time()  # Update time after sleep
@@ -1949,84 +2059,243 @@ async def main_async():
     finally:
         # Ensure we close the shared HTTP session
         if HTTP_SESSION and not HTTP_SESSION.closed:
-            if VERBOSE_OUTPUT:
-                print("Closing shared HTTP session...")
             try:
+                # Create a task to close the HTTP session - don't block the error handler
                 asyncio.create_task(HTTP_SESSION.close())
-            except:
-                pass
+            except Exception as e:
+                # Don't let HTTP session closure errors mask the original error
+                print(f"Error closing HTTP session: {e}")
+                
+        # Stop the Telegram polling thread if running
+        global TELEGRAM_THREAD_RUNNING
+        if 'TELEGRAM_THREAD_RUNNING' in globals() and TELEGRAM_THREAD_RUNNING:
+            TELEGRAM_THREAD_RUNNING = False
+            print("Stopping Telegram polling thread...")
 
 async def process_live_matches_async(session, country_map):
     """
-    Process live matches and display their details using async batch fetching
+    Process live matches and display their details using async batch fetching.
+    Implements one-shot DB batching, minimal per-match I/O, and deferred alerts.
     """
     global PROCESSING_MATCHES, _fetch_cycle
-    PROCESSING_MATCHES = True  # Set flag to indicate match processing is active
-    
-    # Increment cycle counter for memory optimization
-    _fetch_cycle += 1
-    # Increment fetch cycle counter for alternating print mode
-    _fetch_cycle += 1
-    
-    # Initialize fetch cycle metrics and indicators
-    db_status_shown = False  # Track if we've shown DB status for this fetch
-    matches_processed = 0    # Count of matches processed in this cycle
-    match_errors = []       # Collect match errors for consolidated reporting
-    
-    # Fetch cycle already incremented above
-    
-    # Initialize or access previous match data dictionary for alert system
-    if not hasattr(process_live_matches_async, 'previous_matches'):
-        process_live_matches_async.previous_matches = {}
-        
-    # Initialize deferred alerts collection if it doesn't exist
-    if not hasattr(process_live_matches_async, 'deferred_alerts'):
-        process_live_matches_async.deferred_alerts = []
-    
-    # Initialize batch array once at function start if batch inserts are enabled
-    if ENABLE_BATCH_INSERTS:
-        batch_matches = []
-        # Track the last time we flushed the database batch
-        if not hasattr(process_live_matches_async, 'last_db_flush_time'):
-            process_live_matches_async.last_db_flush_time = time.time()
-    
+    PROCESSING_MATCHES = True
+
+    _fetch_cycle += 1  # only increment once per cycle
+
+    # Setup per-cycle state
+    matches_processed = 0
+    match_errors = []
+
+    # Deferred alerts and previous match state live on the function object
+    prev = getattr(process_live_matches_async, 'previous_matches', {})
+    deferred = getattr(process_live_matches_async, 'deferred_alerts', [])
+    process_live_matches_async.previous_matches = prev
+    process_live_matches_async.deferred_alerts = deferred
+
+    # One-shot batch storage
+    batch_matches = [] if ENABLE_BATCH_INSERTS else None
+
     # Fetch live matches
-    if VERBOSE_OUTPUT:
-        print("Fetching live matches data...")
-    live_matches_data = await fetch_live_matches(session)
-    if not live_matches_data or "results" not in live_matches_data:
-        print("No live matches found.")
-        # Add telegram alert for no matches found
-        message = "⚠️ <b>ALERT: NO LIVE MATCHES FOUND</b>\n\nThe API returned no live matches, which is unusual and may indicate a problem with the API or the system. Please check the connection and API status."
+    live_data = await fetch_live_matches(session)
+    if not live_data or "results" not in live_data:
+        print("⚠️  No live matches; sending alert and returning.")
         if TELEGRAM_AVAILABLE:
-            send_alert_with_backpressure(message, "warning")
-        # Don't return any value - just return control to the caller
-        return None
+            send_alert_with_backpressure(
+                "⚠️ <b>No live matches found</b>\nCheck API status.",
+                alert_type="warning"
+            )
+        PROCESSING_MATCHES = False
+        return
+
+    match_ids = extract_match_ids(live_data)
+    total = len(match_ids)
+    print(f"\n===== CYCLE #{_fetch_cycle}: {total} LIVE MATCHES =====")
+
+    # Batch-fetch details & odds with controlled parallelism
+    details_by_id, odds_by_id = {}, {}
+    batch_size = 10  # Reduced batch size to prevent overwhelming the API
+    for i in range(0, total, batch_size):
+        batch = match_ids[i:i+batch_size]
+        batch_start = time.time()
+        print(f"Processing batch {i//batch_size + 1}/{(total+batch_size-1)//batch_size}: {len(batch)} matches")
+        
+        # Fetch details and odds with smarter error handling
+        try:
+            # First fetch details (which are more critical)
+            dd = await asyncio.gather(*(fetch_match_details(session, m) for m in batch), return_exceptions=True)
+            details_success = sum(1 for d in dd if not isinstance(d, Exception))
+            details_by_id.update({m: d for m, d in zip(batch, dd) if not isinstance(d, Exception)})
+            
+            # Small delay between batches to avoid overwhelming the API
+            await asyncio.sleep(0.5)
+            
+            # Then fetch odds (less critical but still important)
+            od = await asyncio.gather(*(fetch_match_odds(session, m) for m in batch), return_exceptions=True)
+            odds_success = sum(1 for o in od if not isinstance(o, Exception))
+            odds_by_id.update({m: o for m, o in zip(batch, od) if not isinstance(o, Exception)})
+            
+            batch_time = time.time() - batch_start
+            print(f"✓ Batch completed in {batch_time:.2f}s - Details: {details_success}/{len(batch)} - Odds: {odds_success}/{len(batch)}")
+            
+            # Add a small delay between batches to avoid overwhelming API
+            # This actually improves overall throughput by reducing congestion
+            if i + batch_size < total:  # If not the last batch
+                await asyncio.sleep(1)  # Small delay between batches
+        except Exception as e:
+            print(f"⚠️ Error processing batch: {e}")
+            # Continue with next batch despite errors
+
+    # Extract team/competition IDs and fetch caches
+    team_ids, comp_ids = set(), set()
+    for m, d in details_by_id.items():
+        r = d.get("results")
+        if r:
+            r0 = r[0] if isinstance(r, list) else r
+            team_ids.update(filter(None, [r0.get("home_team_id"), r0.get("away_team_id")]))
+            comp_ids.add(r0.get("competition_id"))
+
+    team_cache = {}
+    if team_ids:
+        tr = await asyncio.gather(*(fetch_team_info(session, tid) for tid in team_ids))
+        for tid, data in zip(team_ids, tr):
+            if data and data.get("results"):
+                team_cache[tid] = data["results"][0] if isinstance(data["results"], list) else data["results"]
+
+    competition_cache = {}
+    if comp_ids:
+        cr = await asyncio.gather(*(fetch_competition_info(session, cid) for cid in comp_ids))
+        for cid, data in zip(comp_ids, cr):
+            if data and data.get("results"):
+                competition_cache[cid] = data["results"][0] if isinstance(data["results"], list) else data["results"]
+
+    # Header
+    now = get_eastern_time().strftime(CONSOLE_TIME_FORMAT)
+    print(f"→ Processing matches (cycle #{_fetch_cycle}) at {now}")
+
+    # Main per-match loop
+    for idx, mid in enumerate(match_ids, 1):
+        try:
+            live = next((m for m in live_data["results"] if m["id"] == mid), None)
+            if not live:
+                continue
+
+            # Merge details
+            det = details_by_id.get(mid, {}).get("results")
+            det0 = det[0] if isinstance(det, list) and det else det
+            match = {**live, **{k: v for k, v in (det0 or {}).items() if not live.get(k)}}
+
+            # Teams and competition
+            match["home_team"] = extract_team_name(team_cache.get(match.get("home_team_id"), {}))
+            match["away_team"] = extract_team_name(team_cache.get(match.get("away_team_id"), {}))
+            comp_name, cid = extract_competition_info(competition_cache.get(match.get("competition_id"), {}))
+            match["competition"] = comp_name
+            match["country"] = country_map.get(cid, "Unknown Country")
+
+            # Odds promotion
+            fo = format_match_odds(odds_by_id.get(mid, {}))
+            first_ou = fo.get("Over/Under", [])[:1]
+            if first_ou:
+                match["ou_handicap"] = first_ou[0]["handicap"]
+
+            # Print summary
+            print(f"[{idx}/{total}] {match['home_team']} vs {match['away_team']} | {match.get('status_id')}")
+            if VERBOSE_OUTPUT or idx % JSON_LOG_RATE == 0:
+                s = json_dumps({"id": mid, "home_team": match["home_team"], "away_team": match["away_team"],
+                                  "home_score": match.get("home_score"), "away_score": match.get("away_score"),
+                                  "status": get_status_description(match.get("status_id"))})
+                if ASYNC_LOGGING and AIOFILES_AVAILABLE and isinstance(json_logger, AsyncJsonLogger):
+                    asyncio.create_task(json_logger.debug(s))
+                else:
+                    json_logger.debug(s)
+
+            # Defer alerts
+            prev_data = prev.get(mid)
+            deferred.append((mid, match, prev_data))
+            prev[mid] = match.copy()
+
+            # Batch DB
+            if SUPABASE_AVAILABLE:
+                batch_matches.append(match)
+
+            matches_processed += 1
+        except Exception as e:
+            match_errors.append(f"{mid}: {e}")
+
+    # Footer and DB flush
+    print(f"\n→ Completed processing {matches_processed}/{total} matches.")
+    if SUPABASE_AVAILABLE and batch_matches:
+        try:
+            if DB_SEMAPHORE.acquire(timeout=5):
+                Metrics.db_operations += len(batch_matches)
+                payload = [{"raw_json": m} for m in batch_matches]
+                supabase.table("archived_json").insert(payload).execute()
+                Metrics.db_successes += len(batch_matches)
+                DB_SEMAPHORE.release()
+        except Exception as db_e:
+            Metrics.db_failures += len(batch_matches)
+            print(f"⚠️ Batch insert failed: {db_e}")
+
+    # Process deferred alerts
+    if deferred:
+        main_match_alerts.reset_alert_module('ThreeOU')
+        for mid, match, prev_data in deferred:
+            try:
+                main_match_alerts.process_match(match)
+            except Exception as ae:
+                print(f"⚠️ Alert error for {mid}: {ae}")
+
+    # Cleanup
+    deferred.clear()
+    if len(prev) > 100:
+        for k in list(prev)[:-100]:
+            del prev[k]
+    PROCESSING_MATCHES = False
     
     # Extract match IDs
     match_ids = extract_match_ids(live_matches_data)
     
-    # Batch-fetch match details
-    detail_tasks = [fetch_match_details(session, mid) for mid in match_ids]
-    all_details = await asyncio.gather(*detail_tasks, return_exceptions=True)
-    # Build lookup dictionary
-    details_by_id = {mid: detail for mid, detail in zip(match_ids, all_details) 
-                    if not isinstance(detail, Exception)}
+    # Process matches in batches to prevent overwhelming the API
+    batch_size = 20  # Process this many matches at once
+    details_by_id = {}
+    odds_by_id = {}
     
-    # Batch-fetch match odds for all matches
-    odds_tasks = [fetch_match_odds(session, mid) for mid in match_ids]
-    all_odds   = await asyncio.gather(*odds_tasks, return_exceptions=True)
-    odds_by_id = {
-        mid: odds
-        for mid, odds in zip(match_ids, all_odds)
-        if not isinstance(odds, Exception)
-    }
+    total_batches = (len(match_ids) + batch_size - 1) // batch_size
+    print(f"Processing {len(match_ids)} matches in {total_batches} batches of {batch_size}")
+    
+    for batch_index in range(total_batches):
+        start_idx = batch_index * batch_size
+        end_idx = min((batch_index + 1) * batch_size, len(match_ids))
+        batch_ids = match_ids[start_idx:end_idx]
+        
+        print(f"\nFetching batch {batch_index+1}/{total_batches} - {len(batch_ids)} matches")
+        
+        # Batch-fetch match details
+        print(f"  → Fetching match details for {len(batch_ids)} matches")
+        detail_tasks = [fetch_match_details(session, mid) for mid in batch_ids]
+        batch_details = await asyncio.gather(*detail_tasks, return_exceptions=True)
+        batch_details_by_id = {mid: detail for mid, detail in zip(batch_ids, batch_details) 
+                            if not isinstance(detail, Exception)}
+        details_by_id.update(batch_details_by_id)
+        print(f"  ✓ Retrieved details for {len(batch_details_by_id)}/{len(batch_ids)} matches")
+        
+        # Batch-fetch match odds
+        print(f"  → Fetching odds for {len(batch_ids)} matches")
+        odds_tasks = [fetch_match_odds(session, mid) for mid in batch_ids]
+        batch_odds = await asyncio.gather(*odds_tasks, return_exceptions=True)
+        batch_odds_by_id = {
+            mid: odds
+            for mid, odds in zip(batch_ids, batch_odds)
+            if not isinstance(odds, Exception)
+        }
+        odds_by_id.update(batch_odds_by_id)
+        print(f"  ✓ Retrieved odds for {len(batch_odds_by_id)}/{len(batch_ids)} matches")
     
     # Extract team and competition IDs from match details data instead of live data
     team_ids = set()
     competition_ids = set()
     
     # Process match details to extract IDs
+    print(f"Extracting team and competition IDs from {len(details_by_id)} matches")
     for match_id, details in details_by_id.items():
         if "results" not in details or not details["results"]:
             continue
@@ -2046,17 +2315,49 @@ async def process_live_matches_async(session, country_map):
         if competition_id:
             competition_ids.add(competition_id)
     
-    team_tasks = [fetch_team_info(session, tid) for tid in team_ids]
-    team_results = await asyncio.gather(*team_tasks, return_exceptions=True)
-    # Build team cache
-    team_cache = {tid: result for tid, result in zip(team_ids, team_results) 
-                 if not isinstance(result, Exception)}
+    # Process team data in batches
+    team_cache = {}
+    team_ids_list = list(team_ids)
+    team_batch_size = 20
+    team_batches = (len(team_ids_list) + team_batch_size - 1) // team_batch_size
     
-    competition_tasks = [fetch_competition_info(session, cid) for cid in competition_ids]
-    competition_results = await asyncio.gather(*competition_tasks, return_exceptions=True)
-    # Build competition cache
-    competition_cache = {cid: result for cid, result in zip(competition_ids, competition_results) 
-                        if not isinstance(result, Exception)}
+    print(f"\nFetching data for {len(team_ids_list)} teams in {team_batches} batches")
+    for batch_index in range(team_batches):
+        start_idx = batch_index * team_batch_size
+        end_idx = min((batch_index + 1) * team_batch_size, len(team_ids_list))
+        batch_team_ids = team_ids_list[start_idx:end_idx]
+        
+        print(f"  → Fetching data for {len(batch_team_ids)} teams (batch {batch_index+1}/{team_batches})")
+        team_tasks = [fetch_team_info(session, tid) for tid in batch_team_ids]
+        batch_results = await asyncio.gather(*team_tasks, return_exceptions=True)
+        
+        # Build team cache for this batch
+        batch_team_cache = {tid: result for tid, result in zip(batch_team_ids, batch_results) 
+                     if not isinstance(result, Exception)}
+        team_cache.update(batch_team_cache)
+        print(f"  ✓ Retrieved data for {len(batch_team_cache)}/{len(batch_team_ids)} teams")
+    
+    # Process competition data in batches
+    competition_cache = {}
+    competition_ids_list = list(competition_ids)
+    comp_batch_size = 10
+    comp_batches = (len(competition_ids_list) + comp_batch_size - 1) // comp_batch_size
+    
+    print(f"\nFetching data for {len(competition_ids_list)} competitions in {comp_batches} batches")
+    for batch_index in range(comp_batches):
+        start_idx = batch_index * comp_batch_size
+        end_idx = min((batch_index + 1) * comp_batch_size, len(competition_ids_list))
+        batch_comp_ids = competition_ids_list[start_idx:end_idx]
+        
+        print(f"  → Fetching data for {len(batch_comp_ids)} competitions (batch {batch_index+1}/{comp_batches})")
+        comp_tasks = [fetch_competition_info(session, cid) for cid in batch_comp_ids]
+        batch_results = await asyncio.gather(*comp_tasks, return_exceptions=True)
+        
+        # Build competition cache for this batch
+        batch_comp_cache = {cid: result for cid, result in zip(batch_comp_ids, batch_results) 
+                           if not isinstance(result, Exception)}
+        competition_cache.update(batch_comp_cache)
+        print(f"  ✓ Retrieved data for {len(batch_comp_cache)}/{len(batch_comp_ids)} competitions")
     
     # Print a header with total matches found
     print(f"\n===== FOUND {len(match_ids)} LIVE FOOTBALL MATCHES =====\n")
@@ -2505,13 +2806,27 @@ async def process_live_matches_async(session, country_map):
         for match_id, match_data, previous in process_live_matches_async.deferred_alerts:
             try:
                 # Try the new match alerts system first if available
-                if MATCH_ALERTS_AVAILABLE:
-                    print(f"Calling main_match_alerts for match {match_id}: {match_data.get('home_team', 'Unknown')} vs {match_data.get('away_team', 'Unknown')}")
-                    # Check if match data has any OU fields
-                    ou_fields = {k: v for k, v in match_data.items() if any(term in k.lower() for term in ['odd', 'line', 'handicap', 'total', 'over', 'under'])}
-                    if ou_fields:
-                        print(f"Match {match_id} has potential OU fields: {ou_fields}")
-                    main_match_alerts.process_match(match_data)
+                # Force MATCH_ALERTS_AVAILABLE to True to ensure alerts are processed
+                print(f"Processing alerts for match {match_id}: {match_data.get('home_team', 'Unknown')} vs {match_data.get('away_team', 'Unknown')}")
+                # Check if match data has any OU fields
+                ou_fields = {k: v for k, v in match_data.items() if any(term in k.lower() for term in ['odd', 'line', 'handicap', 'total', 'over', 'under'])}
+                if ou_fields:
+                    print(f"Match {match_id} has potential OU fields: {ou_fields}")
+                # Fix #1: Normalize the over/under data to ensure the right fields are present
+                if 'odds' in match_data and isinstance(match_data['odds'], dict):
+                    # Extract over/under line from nested odds structure
+                    ou_data = match_data['odds'].get('over_under', {})
+                    if ou_data and 'handicap' in ou_data:
+                        match_data['ou_handicap'] = float(ou_data['handicap'])
+                        match_data['ou_line'] = float(ou_data['handicap'])  # Duplicate for compatibility
+                
+                # Fix #3: Reset the deduplication cache to ensure alerts are processed
+                if hasattr(main_match_alerts, 'reset_alert_module'):
+                    main_match_alerts.reset_alert_module('ThreeOU')
+                
+                # Force process alerts regardless of MATCH_ALERTS_AVAILABLE flag
+                main_match_alerts.process_match(match_data)
+                print(f"Finished processing alerts for match {match_id}")
                 
                 # Then fall back to the old alert system if available
                 if ALERT_SYSTEM_AVAILABLE:

@@ -33,6 +33,8 @@ import importlib
 import inspect
 import logging
 import traceback
+import time
+import pytz
 from typing import Dict, List, Any, Optional, Set
 from datetime import datetime
 
@@ -226,6 +228,8 @@ def send_telegram_alert(alert_data: Dict[str, Any]) -> bool:
 def format_match_summary(match_data):
     """Generate a match summary in the exact same format as live.py"""
     try:
+        # Import pytz locally to ensure it's available in this function
+        import pytz
         lines = []
         lines.append("==================================================\n")
         
@@ -239,8 +243,16 @@ def format_match_summary(match_data):
         lines.append("==================================================\n")
         
         lines.append("----- MATCH SUMMARY -----")
-        # Use Eastern time for timestamp formatting
-        timestamp = datetime.now(pytz.timezone('US/Eastern')).strftime("%m/%d/%Y %I:%M:%S %p ET")
+        # Use current time with proper ET timezone conversion using pytz
+        try:
+            eastern = pytz.timezone('US/Eastern')
+            current_time = datetime.now(pytz.UTC).astimezone(eastern)
+            timestamp = current_time.strftime("%m/%d/%Y %I:%M:%S %p ET")
+        except Exception as tz_error:
+            # Fallback if timezone conversion fails
+            logger.error(f"Timezone conversion error: {tz_error}")
+            current_time = datetime.now()
+            timestamp = current_time.strftime("%m/%d/%Y %I:%M:%S %p") + " ET"
         lines.append(f"Timestamp: {timestamp}")
         lines.append(f"Match ID: {match_data.get('id', 'Unknown')}")
         lines.append(f"Competition ID: {match_data.get('competition_id', 'Unknown')}")
@@ -430,10 +442,46 @@ def reset() -> None:
     for module_name, module in loaded_modules.items():
         if hasattr(module, 'reset'):
             try:
+                logger.info(f"Resetting module {module_name}")
                 module.reset()
-                logger.info(f"Reset module {module_name}")
             except Exception as e:
-                logger.error(f"Error resetting module {module_name}: {e}")
+                logger.error(f"Failed to reset module {module_name}: {e}")
+
+def reset_modules() -> None:
+    """Reset all alert modules to their initial state."""
+    for module_name, module in loaded_modules.items():
+        if hasattr(module, 'reset'):
+            try:
+                logger.info(f"Resetting module {module_name}")
+                module.reset()
+            except Exception as e:
+                logger.error(f"Failed to reset module {module_name}: {e}")
+
+def reset_alert_module(module_name: str) -> bool:
+    """Reset a specific alert module by name.
+    
+    Args:
+        module_name: The name of the module to reset
+        
+    Returns:
+        True if the module was reset, False otherwise
+    """
+    if module_name in loaded_modules:
+        module = loaded_modules[module_name]
+        if hasattr(module, 'reset'):
+            try:
+                logger.info(f"Resetting module {module_name}")
+                module.reset()
+                return True
+            except Exception as e:
+                logger.error(f"Failed to reset module {module_name}: {e}")
+                return False
+        else:
+            logger.warning(f"Module {module_name} has no reset method")
+            return False
+    else:
+        logger.warning(f"Module {module_name} not found")
+        return False
 
 # Initialize on module import
 initialize()
